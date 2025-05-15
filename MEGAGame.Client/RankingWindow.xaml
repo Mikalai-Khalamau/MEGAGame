@@ -1,0 +1,32 @@
+﻿<Window x:Class="MEGAGame.Client.RankingWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Мировой рейтинг" WindowState="Maximized" WindowStyle="None">
+    <Grid Background="#E3F2FD">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Кнопка выхода -->
+        <Button Grid.Row="0" Content="Выход" Click="Exit_Click" HorizontalAlignment="Right" VerticalAlignment="Top" 
+                Width="100" Height="40" Margin="0,10,20,10" Background="#EF5350" Foreground="White" 
+                FontSize="16" FontWeight="Bold" ToolTip="Закрыть приложение"/>
+
+        <!-- Таблица рейтинга -->
+        <StackPanel Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center">
+            <TextBlock Text="Мировой рейтинг" FontSize="40" FontWeight="Bold" Margin="0,0,0,30" Foreground="#0D47A1" HorizontalAlignment="Center"/>
+            <ListView x:Name="RankingList" Width="600" Height="400" FontSize="16">
+                <ListView.View>
+                    <GridView>
+                        <GridViewColumn Header="Место" Width="100" DisplayMemberBinding="{Binding Rank}"/>
+                        <GridViewColumn Header="Никнейм" Width="150" DisplayMemberBinding="{Binding Name}"/>
+                        <GridViewColumn Header="Город" Width="150" DisplayMemberBinding="{Binding City}"/>
+                        <GridViewColumn Header="Рейтинг" Width="100" DisplayMemberBinding="{Binding Rating}"/>
+                    </GridView>
+                </ListView.View>
+            </ListView>
+            <Button Content="Назад" Click="Back_Click" Style="{StaticResource MenuButton}" Margin="0,20,0,0"/>
+        </StackPanel>
+    </Grid>
+</Window>

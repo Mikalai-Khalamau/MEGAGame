@@ -4,12 +4,18 @@
         xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
         Title="Игровое окно" WindowState="Maximized" WindowStyle="None">
     <Grid Background="#E3F2FD">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
         <!-- Кнопка выхода -->
-        <Button Content="X" Click="Exit_Click" HorizontalAlignment="Right" VerticalAlignment="Top" 
-                Width="40" Height="40" Margin="10" Background="#EF5350" Foreground="White"/>
+        <Button Grid.Row="0" Content="Выход" Click="Exit_Click" HorizontalAlignment="Right" VerticalAlignment="Top" 
+                Width="100" Height="40" Margin="0,10,20,10" Background="#EF5350" Foreground="White" 
+                FontSize="16" FontWeight="Bold" ToolTip="Закрыть приложение"/>
 
         <!-- Основная сетка для интерфейса игры -->
-        <Grid Margin="20">
+        <Grid Grid.Row="1" Margin="20">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
@@ -22,14 +28,32 @@
                 <TextBlock x:Name="PlayerInfo" Text="Игрок: [Никнейм], Очки: 0" FontSize="20" Foreground="#0D47A1"/>
             </StackPanel>
 
-            <!-- Область для вопросов (будет заполняться динамически) -->
+            <!-- Область для выбора тем и вопросов -->
             <Grid Grid.Row="1" x:Name="QuestionArea">
-                <TextBlock Text="Выберите тему или вопрос..." FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#424242"/>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <!-- Список тем -->
+                <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,20">
+                    <TextBlock Text="Выберите тему:" FontSize="20" Foreground="#0D47A1" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                    <ComboBox x:Name="ThemeSelector" Width="200" FontSize="16" SelectionChanged="ThemeSelector_SelectionChanged"/>
+                </StackPanel>
+
+                <!-- Область для вопроса -->
+                <StackPanel Grid.Row="1" x:Name="QuestionPanel" Visibility="Collapsed" HorizontalAlignment="Center">
+                    <TextBlock x:Name="QuestionText" Text="Вопрос..." FontSize="24" Foreground="#424242" Margin="0,0,0,20" TextWrapping="Wrap" MaxWidth="800"/>
+                    <RadioButton x:Name="Option1" Content="Вариант 1" FontSize="16" Margin="0,5" GroupName="Options" Checked="Option_Checked"/>
+                    <RadioButton x:Name="Option2" Content="Вариант 2" FontSize="16" Margin="0,5" GroupName="Options" Checked="Option_Checked"/>
+                    <RadioButton x:Name="Option3" Content="Вариант 3" FontSize="16" Margin="0,5" GroupName="Options" Checked="Option_Checked"/>
+                    <RadioButton x:Name="Option4" Content="Вариант 4" FontSize="16" Margin="0,5" GroupName="Options" Checked="Option_Checked"/>
+                    <Button Content="Подтвердить ответ" Click="SubmitAnswer_Click" Style="{StaticResource MenuButton}" Margin="0,20,0,0"/>
+                </StackPanel>
             </Grid>
 
-            <!-- Кнопки действий (ответ, следующий вопрос и т.д.) -->
+            <!-- Кнопки действий -->
             <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,20,0,0">
-                <Button Content="Ответить" Click="Answer_Click" Style="{StaticResource MenuButton}" Margin="0,0,10,0"/>
                 <Button Content="Следующий вопрос" Click="NextQuestion_Click" Style="{StaticResource MenuButton}"/>
             </StackPanel>
         </Grid>

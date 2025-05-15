@@ -5,36 +5,30 @@
     <Grid Background="#E3F2FD">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <!-- Строка для кнопки выхода -->
             <RowDefinition Height="*"/>
-            <!-- Основное содержимое -->
         </Grid.RowDefinitions>
 
-        <!-- Кнопка выхода -->
         <Button Grid.Row="0" Content="Выход" Click="Exit_Click" HorizontalAlignment="Right" VerticalAlignment="Top" 
                 Width="100" Height="40" Margin="0,10,20,10" Background="#EF5350" Foreground="White" 
                 FontSize="16" FontWeight="Bold" ToolTip="Закрыть приложение"/>
 
-        <!-- Основной контент -->
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="200"/>
             </Grid.ColumnDefinitions>
 
-            <!-- Основное меню -->
             <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
                 <TextBlock Text="MEGAGame" FontSize="70" FontWeight="Bold" Margin="0,0,0,50" Foreground="#0D47A1"/>
 
                 <Button Content="Игра по сети" Style="{StaticResource MenuButton}"/>
-                <Button Content="Одиночная игра" Style="{StaticResource MenuButton}"/>
+                <Button Content="Одиночная игра" Click="StartSinglePlayer_Click" Style="{StaticResource MenuButton}"/>
                 <Button Content="Игра с другом" Style="{StaticResource MenuButton}"/>
             </StackPanel>
 
-            <!-- Боковая панель -->
             <StackPanel Grid.Column="1" Background="#BBDEFB" Margin="10">
                 <TextBlock Text="Дополнительно" FontWeight="Bold" Margin="0,0,0,10" Foreground="#0D47A1"/>
-                <Button Content="Мировой рейтинг" Style="{StaticResource SideButton}"/>
+                <Button Content="Мировой рейтинг" Click="ShowRanking_Click" Style="{StaticResource SideButton}"/>
                 <Button Content="Редактор вопросов" Style="{StaticResource SideButton}"/>
             </StackPanel>
         </Grid>
