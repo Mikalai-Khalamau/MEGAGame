@@ -1,0 +1,37 @@
+﻿<Window x:Class="MEGAGame.Client.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+        Title="Игровое окно" WindowState="Maximized" WindowStyle="None">
+    <Grid Background="#E3F2FD">
+        <!-- Кнопка выхода -->
+        <Button Content="X" Click="Exit_Click" HorizontalAlignment="Right" VerticalAlignment="Top" 
+                Width="40" Height="40" Margin="10" Background="#EF5350" Foreground="White"/>
+
+        <!-- Основная сетка для интерфейса игры -->
+        <Grid Margin="20">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Заголовок и информация о раунде -->
+            <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Center">
+                <TextBlock Text="MEGAGame - Раунд 1" FontSize="30" FontWeight="Bold" Foreground="#0D47A1" Margin="0,0,20,0"/>
+                <TextBlock x:Name="PlayerInfo" Text="Игрок: [Никнейм], Очки: 0" FontSize="20" Foreground="#0D47A1"/>
+            </StackPanel>
+
+            <!-- Область для вопросов (будет заполняться динамически) -->
+            <Grid Grid.Row="1" x:Name="QuestionArea">
+                <TextBlock Text="Выберите тему или вопрос..." FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#424242"/>
+            </Grid>
+
+            <!-- Кнопки действий (ответ, следующий вопрос и т.д.) -->
+            <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,20,0,0">
+                <Button Content="Ответить" Click="Answer_Click" Style="{StaticResource MenuButton}" Margin="0,0,10,0"/>
+                <Button Content="Следующий вопрос" Click="NextQuestion_Click" Style="{StaticResource MenuButton}"/>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</Window>
