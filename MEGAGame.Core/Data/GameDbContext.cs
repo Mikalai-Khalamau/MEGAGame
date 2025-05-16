@@ -1,7 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using MEGAGame.Core.Models;
-using System.Collections.Generic;
-using System.Reflection.Emit;
 
 namespace MEGAGame.Core.Data
 {
@@ -18,14 +16,9 @@ namespace MEGAGame.Core.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<Player>()
-                .HasKey(p => p.Id);
-
-            modelBuilder.Entity<Theme>()
-                .HasKey(t => t.Id);
-
-            modelBuilder.Entity<Question>()
-                .HasKey(q => q.Id);
+            modelBuilder.Entity<Player>().HasKey(p => p.Id);
+            modelBuilder.Entity<Theme>().HasKey(t => t.Id);
+            modelBuilder.Entity<Question>().HasKey(q => q.Id);
 
             modelBuilder.Entity<Question>()
                 .HasOne(q => q.Theme)
