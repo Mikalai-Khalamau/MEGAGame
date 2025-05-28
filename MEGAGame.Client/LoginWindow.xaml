@@ -4,22 +4,35 @@
         xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
         Title="Вход в игру" WindowState="Maximized" WindowStyle="None">
     <Grid Background="#E3F2FD">
-        <!-- Кнопка выхода -->
-        <Button Content="X" Click="Exit_Click" HorizontalAlignment="Right" VerticalAlignment="Top" 
-                Width="40" Height="40" Margin="10" Background="#EF5350" Foreground="White"/>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
 
-        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Width="400">
-            <TextBlock Text="Введите ваши данные:" FontSize="20" FontWeight="Bold" Margin="0,0,0,20" Foreground="#0D47A1"/>
+        <StackPanel Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Center" Width="400">
+            <TextBlock Text="Вход или регистрация" FontSize="20" FontWeight="Bold" Margin="0,0,0,20" Foreground="#0D47A1"/>
+
             <TextBlock Text="Никнейм:" FontSize="14" Foreground="#0D47A1"/>
-            <TextBox x:Name="NicknameBox" Margin="0,5,0,10" FontSize="14"/>
-            <TextBlock Text="Имя:" FontSize="14" Foreground="#0D47A1"/>
-            <TextBox x:Name="FirstNameBox" Margin="0,5,0,10" FontSize="14"/>
-            <TextBlock Text="Фамилия:" FontSize="14" Foreground="#0D47A1"/>
-            <TextBox x:Name="LastNameBox" Margin="0,5,0,10" FontSize="14"/>
-            <TextBlock Text="Город:" FontSize="14" Foreground="#0D47A1"/>
-            <TextBox x:Name="CityBox" Margin="0,5,0,20" FontSize="14"/>
+            <TextBox x:Name="UsernameBox" Margin="0,5,0,10" FontSize="14"/>
 
-            <Button Content="Продолжить" Click="Continue_Click" Padding="10,5" FontSize="14" Width="120"/>
+            <TextBlock Text="Email:" FontSize="14" Foreground="#0D47A1"/>
+            <TextBox x:Name="EmailBox" Margin="0,5,0,10" FontSize="14"/>
+
+            <TextBlock Text="Пароль:" FontSize="14" Foreground="#0D47A1"/>
+            <PasswordBox x:Name="PasswordBox" Margin="0,5,0,20" FontSize="14"/>
+
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <Button Content="Войти" Click="Login_Click" Padding="10,5" FontSize="14" Width="120" Margin="0,0,10,0"/>
+                <Button Content="Регистрация" Click="Register_Click" Padding="10,5" FontSize="14" Width="120"/>
+            </StackPanel>
+
+            <!-- Кнопка "Выход" добавлена здесь, ниже всех остальных элементов -->
+            <Button x:Name="ExitButton" Content="Выход" Click="Exit_Click" Padding="10,5" FontSize="14" Width="120" 
+                    Margin="0,20,0,0" HorizontalAlignment="Center" Background="#EF5350" Foreground="White"/>
+        </StackPanel>
+
+        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="10,0,10,0" Width="200">
+            <TextBlock x:Name="MessageTextBlock" Foreground="Red" TextWrapping="Wrap" TextAlignment="Right"/>
         </StackPanel>
     </Grid>
 </Window>

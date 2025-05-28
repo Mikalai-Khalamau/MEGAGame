@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using System.Windows;
 using MEGAGame.Core.Data;
+using MEGAGame.Core.Services;
 
 namespace MEGAGame.Client
 {
@@ -23,8 +24,8 @@ namespace MEGAGame.Client
                 var rankedPlayers = players.Select((player, index) => new
                 {
                     Rank = index + 1,
-                    player.Name,
-                    player.City,
+                    Name = player.Username,
+                    Email = player.Email,
                     player.Rating
                 }).ToList();
 
@@ -34,8 +35,15 @@ namespace MEGAGame.Client
 
         private void Back_Click(object sender, RoutedEventArgs e)
         {
-            new MainMenuWindow().Show();
-            this.Close();
+            using (var context = new GameDbContext())
+            {
+                var player = context.Players.FirstOrDefault(p => p.PlayerId == GameSettings.PlayerId);
+                if (player != null)
+                {
+                    new MainMenuWindow(player).Show();
+                    this.Close();
+                }
+            }
         }
 
         private void Exit_Click(object sender, RoutedEventArgs e)

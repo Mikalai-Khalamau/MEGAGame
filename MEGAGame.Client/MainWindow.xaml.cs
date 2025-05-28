@@ -1,12 +1,13 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
 using System.Windows.Media;
 using MEGAGame.Core.Data;
 using MEGAGame.Core.Models;
 using MEGAGame.Core.Services;
+using Microsoft.VisualBasic;
 
 namespace MEGAGame.Client
 {
@@ -16,7 +17,6 @@ namespace MEGAGame.Client
         private List<Question> currentQuestions;
         private Question currentQuestion;
         private int selectedOption;
-        private int currentThemeIndex;
         private int playerBet;
         private bool isQuestionActive;
 
@@ -32,13 +32,18 @@ namespace MEGAGame.Client
         {
             using (var context = new GameDbContext())
             {
-                currentThemes = context.Themes
-                    .Where(t => t.Questions.Any(q => q.Round == GameSettings.CurrentRound))
+                currentQuestions = context.Questions
+                    .Where(q => q.PackId == GameSettings.SelectedPackId && q.Round == GameSettings.CurrentRound)
                     .ToList();
 
-                if (!currentThemes.Any())
+                currentThemes = currentQuestions
+                    .Select(q => q.Theme)
+                    .Distinct()
+                    .ToList();
+
+                if (!currentQuestions.Any())
                 {
-                    MessageBox.Show($"Темы для раунда {GameSettings.CurrentRound} не найдены! Проверяйте базу данных.");
+                    MessageBox.Show($"Вопросов для раунда {GameSettings.CurrentRound} в выбранном пакете не найдены!");
                     EndGame();
                     return;
                 }
@@ -78,58 +83,40 @@ namespace MEGAGame.Client
             for (int i = 0; i < questionCount; i++) QuestionGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
             for (int i = 0; i < themeCount; i++) QuestionGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 
-            using (var context = new GameDbContext())
+            var themeQuestions = currentQuestions
+                .GroupBy(q => q.ThemeId)
+                .ToDictionary(g => g.Key, g => g.OrderBy(q => q.Points).ToList());
+
+            for (int i = 0; i < themeCount; i++)
             {
-                currentQuestions = context.Questions
-                    .Where(q => q.Round == GameSettings.CurrentRound)
-                    .OrderBy(q => q.Points)
-                    .ToList();
-
-                var themeQuestions = currentQuestions.GroupBy(q => q.ThemeId).ToDictionary(g => g.Key, g => g.ToList());
-
-                for (int i = 0; i < themeCount; i++)
+                if (i < currentThemes.Count)
                 {
-                    if (i < currentThemes.Count)
-                    {
-                        var theme = currentThemes[i];
-                        var questions = themeQuestions.ContainsKey(theme.Id) ? themeQuestions[theme.Id] : new List<Question>();
+                    var theme = currentThemes[i];
+                    var questions = themeQuestions.ContainsKey(theme.ThemeId) ? themeQuestions[theme.ThemeId] : new List<Question>();
 
-                        for (int j = 0; j < questionCount; j++)
+                    for (int j = 0; j < questionCount; j++)
+                    {
+                        if (j < questions.Count)
                         {
-                            if (j < questions.Count)
+                            var question = questions[j];
+                            var button = new Button
                             {
-                                var question = questions[j];
-                                var button = new Button
-                                {
-                                    Content = $"{theme.Name} ({question.Points} очков)",
-                                    Tag = question.Id,
-                                    Background = question.IsPlayed ? Brushes.Red : Brushes.LightGreen,
-                                    IsEnabled = !question.IsPlayed && !isQuestionActive,
-                                    Margin = new Thickness(5),
-                                    Padding = new Thickness(10),
-                                    FontSize = 16
-                                };
-                                button.Click += QuestionButton_Click;
-                                Grid.SetRow(button, j);
-                                Grid.SetColumn(button, i);
-                                QuestionGrid.Children.Add(button);
-                            }
+                                Content = $"{theme.Name} ({question.Points} очков)",
+                                Tag = question.QuestionId,
+                                Background = question.IsPlayed ? Brushes.Red : Brushes.LightGreen,
+                                IsEnabled = !question.IsPlayed && !isQuestionActive,
+                                Margin = new Thickness(5),
+                                Padding = new Thickness(10),
+                                FontSize = 16
+                            };
+                            button.Click += QuestionButton_Click;
+                            Grid.SetRow(button, j);
+                            Grid.SetColumn(button, i);
+                            QuestionGrid.Children.Add(button);
                         }
                     }
                 }
             }
-        }
-
-        private int[] GetRoundPoints(int round)
-        {
-            return round switch
-            {
-                1 => new int[] { 100, 100, 100, 100, 100 },
-                2 => new int[] { 100, 200, 300, 400, 500 },
-                3 => new int[] { 300, 300, 300, 300, 300 },
-                4 => new int[] { 0 },
-                _ => new int[] { }
-            };
         }
 
         private void QuestionButton_Click(object sender, RoutedEventArgs e)
@@ -139,7 +126,7 @@ namespace MEGAGame.Client
                 int questionId = (int)button.Tag;
                 using (var context = new GameDbContext())
                 {
-                    currentQuestion = context.Questions.FirstOrDefault(q => q.Id == questionId);
+                    currentQuestion = context.Questions.FirstOrDefault(q => q.QuestionId == questionId);
                     if (currentQuestion != null)
                     {
                         button.Background = Brushes.Red;
@@ -161,7 +148,7 @@ namespace MEGAGame.Client
                     var questionId = (int)button.Tag;
                     using (var context = new GameDbContext())
                     {
-                        var question = context.Questions.FirstOrDefault(q => q.Id == questionId);
+                        var question = context.Questions.FirstOrDefault(q => q.QuestionId == questionId);
                         if (question != null)
                         {
                             button.IsEnabled = !question.IsPlayed && !isQuestionActive;
@@ -171,35 +158,12 @@ namespace MEGAGame.Client
             }
         }
 
-        private void StartFinalRound()
-        {
-            QuestionDisplayPanel.Visibility = Visibility.Collapsed;
-            BetPanel.Visibility = Visibility.Visible;
-
-            if (GameSettings.PlayerScore <= 0)
-            {
-                playerBet = 1;
-                BetInput.Text = "1";
-                BetInput.IsEnabled = false;
-                MessageBox.Show("Ваш счёт <= 0. Ваша ставка автоматически установлена на 1.");
-            }
-            else
-            {
-                BetInput.Text = "";
-                BetInput.IsEnabled = true;
-                MessageBox.Show($"Ваш счёт: {GameSettings.PlayerScore}. Введите ставку (не более {GameSettings.PlayerScore}).");
-            }
-        }
-
         private void SubmitBet_Click(object sender, RoutedEventArgs e)
         {
-            if (GameSettings.PlayerScore > 0)
+            if (!int.TryParse(BetInput.Text, out playerBet) || playerBet <= 0 || playerBet > GameSettings.PlayerScore)
             {
-                if (!int.TryParse(BetInput.Text, out playerBet) || playerBet <= 0 || playerBet > GameSettings.PlayerScore)
-                {
-                    MessageBox.Show($"Пожалуйста, введите корректную ставку (от 1 до {GameSettings.PlayerScore})!");
-                    return;
-                }
+                MessageBox.Show($"Пожалуйста, введите корректную ставку (от 1 до {GameSettings.PlayerScore})!");
+                return;
             }
 
             BetPanel.Visibility = Visibility.Collapsed;
@@ -208,7 +172,7 @@ namespace MEGAGame.Client
             using (var context = new GameDbContext())
             {
                 currentQuestions = context.Questions
-                    .Where(q => q.Round == GameSettings.CurrentRound && !q.IsPlayed)
+                    .Where(q => q.PackId == GameSettings.SelectedPackId && q.Round == GameSettings.CurrentRound && !q.IsPlayed)
                     .ToList();
 
                 if (currentQuestions.Any())
@@ -278,7 +242,7 @@ namespace MEGAGame.Client
 
             using (var context = new GameDbContext())
             {
-                var question = context.Questions.FirstOrDefault(q => q.Id == currentQuestion.Id);
+                var question = context.Questions.FirstOrDefault(q => q.QuestionId == currentQuestion.QuestionId);
                 if (question != null)
                 {
                     question.IsPlayed = true;
@@ -322,7 +286,7 @@ namespace MEGAGame.Client
 
                 using (var context = new GameDbContext())
                 {
-                    var question = context.Questions.FirstOrDefault(q => q.Id == currentQuestion.Id);
+                    var question = context.Questions.FirstOrDefault(q => q.QuestionId == currentQuestion.QuestionId);
                     if (question != null)
                     {
                         question.IsPlayed = true;
@@ -345,7 +309,7 @@ namespace MEGAGame.Client
 
             using (var context = new GameDbContext())
             {
-                var question = context.Questions.FirstOrDefault(q => q.Id == currentQuestion.Id);
+                var question = context.Questions.FirstOrDefault(q => q.QuestionId == currentQuestion.QuestionId);
                 if (question != null)
                 {
                     question.IsPlayed = true;
@@ -353,7 +317,7 @@ namespace MEGAGame.Client
                 }
             }
 
-            string correctAnswer = currentQuestion.Answer.Trim().ToLower();
+            string correctAnswer = currentQuestion.Answer?.Trim().ToLower();
             if (userAnswer == correctAnswer)
             {
                 GameSettings.PlayerScore += currentQuestion.Points;
@@ -391,7 +355,7 @@ namespace MEGAGame.Client
             using (var context = new GameDbContext())
             {
                 var remainingQuestions = context.Questions
-                    .Where(q => q.Round == GameSettings.CurrentRound && !q.IsPlayed)
+                    .Where(q => q.PackId == GameSettings.SelectedPackId && q.Round == GameSettings.CurrentRound && !q.IsPlayed)
                     .ToList();
 
                 if (!remainingQuestions.Any())
@@ -431,31 +395,74 @@ namespace MEGAGame.Client
 
             using (var context = new GameDbContext())
             {
-                var player = context.Players.FirstOrDefault(p => p.Name == GameSettings.PlayerName);
+                var player = context.Players.FirstOrDefault(p => p.PlayerId == GameSettings.PlayerId);
                 if (player != null)
                 {
                     player.Score = GameSettings.PlayerScore;
                     player.Rating += GameSettings.PlayerScore / 10;
                     context.SaveChanges();
                 }
+
+                var session = new GameSession
+                {
+                    HostId = GameSettings.PlayerId,
+                    StartTime = DateTime.Now,
+                    Status = "completed",
+                    LastUpdated = DateTime.Now
+                };
+                context.GameSessions.Add(session);
+                context.SaveChanges();
+
+                var sessionPlayer = new SessionPlayer
+                {
+                    SessionId = session.SessionId,
+                    PlayerId = GameSettings.PlayerId,
+                    Score = GameSettings.PlayerScore,
+                    LastUpdated = DateTime.Now
+                };
+                context.SessionPlayers.Add(sessionPlayer);
+                context.SaveChanges();
+            }
+
+            using (var context = new GameDbContext())
+            {
+                var questions = context.Questions
+                    .Where(q => q.PackId == GameSettings.SelectedPackId)
+                    .ToList();
+                questions.ForEach(q => q.IsPlayed = false);
+                context.SaveChanges();
             }
         }
 
         private void UpdatePlayerInfo()
         {
-            PlayerInfo.Text = $"Игрок: {GameSettings.PlayerName}, Очки: {GameSettings.PlayerScore}";
+            PlayerInfo.Text = $"Игрок: {GameSettings.PlayerUsername}, Очки: {GameSettings.PlayerScore}";
         }
 
         private void GoToMainMenu_Click(object sender, RoutedEventArgs e)
         {
-            new MainMenuWindow().Show();
-            this.Close();
+            using (var context = new GameDbContext())
+            {
+                var player = context.Players.FirstOrDefault(p => p.PlayerId == GameSettings.PlayerId);
+                if (player != null)
+                {
+                    new MainMenuWindow(player).Show();
+                    this.Close();
+                }
+            }
         }
 
         private void ExitToMainMenu_Click(object sender, RoutedEventArgs e)
         {
-            new MainMenuWindow().Show();
-            this.Close();
+            using (var context = new GameDbContext())
+            {
+                var player = context.Players.FirstOrDefault(p => p.PlayerId == GameSettings.PlayerId);
+                if (player != null)
+                {
+                    new MainMenuWindow(player).Show();
+                    this.Close();
+                }
+            }
         }
     }
 }

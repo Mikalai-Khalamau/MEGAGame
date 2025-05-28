@@ -8,6 +8,12 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
+        <!-- Ник и рейтинг -->
+        <StackPanel Grid.Row="0" Orientation="Horizontal" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="10,10,0,0">
+            <TextBlock x:Name="PlayerUsernameTextBlock" FontWeight="Bold" Margin="0,0,10,0" FontSize="18" Foreground="#0D47A1"/>
+            <TextBlock x:Name="PlayerRatingTextBlock" Text="Рейтинг: " FontSize="18" Foreground="#0D47A1"/>
+        </StackPanel>
+
         <!-- Заголовок -->
         <TextBlock Grid.Row="0" Text="MEGA Game" FontSize="40" FontWeight="Bold" Foreground="#0D47A1" 
                    HorizontalAlignment="Center" Margin="0,20,0,20"/>

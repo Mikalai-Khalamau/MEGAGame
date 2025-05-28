@@ -1,0 +1,78 @@
+﻿<mah:MetroWindow x:Class="MEGAGame.Client.QuestionEditWindowRound1"
+                 xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                 xmlns:mah="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+                 xmlns:controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+                 Title="Редактирование вопроса (Раунд 1)" Height="700" Width="800" Background="#E3F2FD">
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Заголовок -->
+        <TextBlock Grid.Row="0" Text="Редактирование вопроса" FontSize="30" FontWeight="Bold" 
+                   Foreground="#0D47A1" HorizontalAlignment="Center" Margin="0,0,0,20"/>
+
+        <!-- Информация о теме и раунде -->
+        <TextBlock x:Name="ThemeTextBlock" Grid.Row="1" FontSize="16" Foreground="#0D47A1" 
+                   Margin="0,0,0,10" HorizontalAlignment="Left"/>
+        <TextBlock x:Name="RoundTextBlock" Grid.Row="2" FontSize="16" Foreground="#0D47A1" 
+                   Margin="0,0,0,20" HorizontalAlignment="Left"/>
+
+        <!-- Текст вопроса -->
+        <TextBlock Grid.Row="3" Text="Текст вопроса:" FontSize="16" Foreground="#0D47A1" 
+                   Margin="0,0,0,5"/>
+        <TextBox x:Name="QuestionTextBox" Grid.Row="4" Margin="0,5,0,20" Height="100" 
+                 AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"/>
+
+        <!-- Номинал -->
+        <TextBlock Grid.Row="5" Text="Номинал:" FontSize="16" Foreground="#0D47A1" 
+                   Margin="0,0,0,5"/>
+        <TextBox x:Name="PointsTextBox" Grid.Row="6" Margin="0,5,0,20" Width="150" 
+                 HorizontalAlignment="Left"/>
+
+        <!-- Варианты ответа -->
+        <TextBlock Grid.Row="7" Text="Варианты ответа:" FontSize="16" Foreground="#0D47A1" 
+                   Margin="0,0,0,5"/>
+        <StackPanel Grid.Row="8" Orientation="Vertical" Margin="0,5,0,20">
+            <TextBox x:Name="Option1TextBox" Margin="0,5,0,5" Width="400" 
+                     HorizontalAlignment="Left" controls:TextBoxHelper.Watermark="Вариант 1"/>
+            <TextBox x:Name="Option2TextBox" Margin="0,5,0,5" Width="400" 
+                     HorizontalAlignment="Left" controls:TextBoxHelper.Watermark="Вариант 2"/>
+            <TextBox x:Name="Option3TextBox" Margin="0,5,0,5" Width="400" 
+                     HorizontalAlignment="Left" controls:TextBoxHelper.Watermark="Вариант 3"/>
+            <TextBox x:Name="Option4TextBox" Margin="0,5,0,5" Width="400" 
+                     HorizontalAlignment="Left" controls:TextBoxHelper.Watermark="Вариант 4"/>
+        </StackPanel>
+
+        <!-- Правильный вариант -->
+        <TextBlock Grid.Row="9" Text="Правильный вариант:" FontSize="16" Foreground="#0D47A1" 
+                   Margin="0,0,0,5"/>
+        <ComboBox x:Name="CorrectOptionComboBox" Grid.Row="10" Margin="0,5,0,20" Width="150" 
+                  HorizontalAlignment="Left">
+            <ComboBoxItem Tag="1">Вариант 1</ComboBoxItem>
+            <ComboBoxItem Tag="2">Вариант 2</ComboBoxItem>
+            <ComboBoxItem Tag="3">Вариант 3</ComboBoxItem>
+            <ComboBoxItem Tag="4">Вариант 4</ComboBoxItem>
+        </ComboBox>
+
+        <!-- Кнопки -->
+        <StackPanel Grid.Row="11" Orientation="Horizontal" HorizontalAlignment="Center" 
+                    Margin="0,20,0,0">
+            <Button Content="Сохранить" Click="SaveQuestion_Click" Padding="10" Width="120"/>
+            <Button Content="Отмена" Click="Cancel_Click" Padding="10" Width="120" 
+                    Margin="10,0,0,0"/>
+        </StackPanel>
+    </Grid>
+</mah:MetroWindow>

@@ -1,11 +1,21 @@
-﻿using System.Collections.Generic;
-
+﻿using System.ComponentModel.DataAnnotations;
 namespace MEGAGame.Core.Models
 {
     public class Theme
     {
-        public int Id { get; set; }
+        [Key]
+        public int ThemeId { get; set; }
         public string Name { get; set; }
-        public List<Question> Questions { get; set; } = new List<Question>();
+        public int Round { get; set; }
+        public int CreatedBy { get; set; }
+        public DateTime CreatedDate { get; set; }
+        public DateTime LastUpdated { get; set; }
+
+        // Связь с пакетом
+        public int PackId { get; set; }
+        public virtual QuestionPack Pack { get; set; }
+
+        // Связь с вопросами
+        public virtual ICollection<Question> Questions { get; set; }
     }
 }

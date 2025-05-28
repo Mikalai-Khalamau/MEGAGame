@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System;
+using System.Windows;
 using MEGAGame.Core.Models;
 using MEGAGame.Core.Services;
 
@@ -11,47 +12,94 @@ namespace MEGAGame.Client
             InitializeComponent();
             if (!GameSettings.IsFirstRun)
             {
-                NicknameBox.Text = GameSettings.PlayerName;
-                FirstNameBox.Text = GameSettings.PlayerFirstName;
-                LastNameBox.Text = GameSettings.PlayerLastName;
-                CityBox.Text = GameSettings.PlayerCity;
+                UsernameBox.Text = GameSettings.PlayerUsername;
             }
         }
 
-        private void Continue_Click(object sender, RoutedEventArgs e)
+        private void Login_Click(object sender, RoutedEventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(NicknameBox.Text) ||
-                string.IsNullOrWhiteSpace(FirstNameBox.Text) ||
-                string.IsNullOrWhiteSpace(LastNameBox.Text) ||
-                string.IsNullOrWhiteSpace(CityBox.Text))
+            string username = UsernameBox.Text.Trim();
+            string password = PasswordBox.Password.Trim();
+
+            if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
             {
-                MessageBox.Show("Все поля должны быть заполнены!");
+                MessageTextBlock.Text = "Заполните все поля!";
                 return;
             }
 
-            GameSettings.PlayerName = NicknameBox.Text;
-            GameSettings.PlayerFirstName = FirstNameBox.Text;
-            GameSettings.PlayerLastName = LastNameBox.Text;
-            GameSettings.PlayerCity = CityBox.Text;
+            var player = PlayerService.GetPlayerByUsername(username);
+            if (player == null || !BCrypt.Net.BCrypt.Verify(password, player.Password))
+            {
+                MessageTextBlock.Text = "Такого пользователя не существует или неверный пароль.";
+                return;
+            }
+
+            GameSettings.PlayerId = player.PlayerId;
+            GameSettings.PlayerUsername = player.Username;
             GameSettings.IsFirstRun = false;
+
+            player.LastLogin = DateTime.Now;
+            PlayerService.UpdatePlayer(player);
+
+            OpenMainMenu(player);
+        }
+
+        private void Register_Click(object sender, RoutedEventArgs e)
+        {
+            string username = UsernameBox.Text.Trim();
+            string email = EmailBox.Text.Trim();
+            string password = PasswordBox.Password.Trim();
+
+            if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
+            {
+                MessageTextBlock.Text = "Заполните все поля!";
+                return;
+            }
+
+            var existingPlayerByUsername = PlayerService.GetPlayerByUsername(username);
+            var existingPlayerByEmail = PlayerService.GetPlayerByEmail(email);
+
+            if (existingPlayerByUsername != null)
+            {
+                MessageTextBlock.Text = "Пользователь с таким никнеймом уже существует. Поменяйте данные.";
+                return;
+            }
+            if (existingPlayerByEmail != null)
+            {
+                MessageTextBlock.Text = "Пользователь с таким email уже существует. Поменяйте данные.";
+                return;
+            }
 
             var player = new Player
             {
-                Name = GameSettings.PlayerName,
-                FirstName = GameSettings.PlayerFirstName,
-                LastName = GameSettings.PlayerLastName,
-                City = GameSettings.PlayerCity,
-                Score = 0
+                Username = username,
+                Email = email,
+                Password = BCrypt.Net.BCrypt.HashPassword(password),
+                Score = 0,
+                Rating = 1500, // Устанавливаем начальный рейтинг 1500
+                RegistrationDate = DateTime.Now,
+                LastLogin = DateTime.Now
             };
-            MEGAGame.Core.Services.PlayerService.SavePlayer(player);
 
-            new MainMenuWindow().Show();
-            this.Close();
+            PlayerService.SavePlayer(player);
+            GameSettings.PlayerId = player.PlayerId;
+            GameSettings.PlayerUsername = player.Username;
+            GameSettings.IsFirstRun = false;
+
+            MessageTextBlock.Text = "Регистрация успешна! Вы можете войти.";
+            OpenMainMenu(player);
         }
 
         private void Exit_Click(object sender, RoutedEventArgs e)
         {
             Application.Current.Shutdown();
+        }
+
+        private void OpenMainMenu(Player player)
+        {
+            var mainMenu = new MainMenuWindow(player);
+            mainMenu.Show();
+            this.Close();
         }
     }
 }
