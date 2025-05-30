@@ -27,6 +27,13 @@ namespace MEGAGame.Client
                 return;
             }
 
+            // Валидация длины
+            if (username.Length > 16)
+            {
+                MessageTextBlock.Text = "Максимальная длина ника — 16 символов.";
+                return;
+            }
+
             var player = PlayerService.GetPlayerByUsername(username);
             if (player == null || !BCrypt.Net.BCrypt.Verify(password, player.Password))
             {
@@ -56,6 +63,18 @@ namespace MEGAGame.Client
                 return;
             }
 
+            // Валидация длины
+            if (username.Length > 16)
+            {
+                MessageTextBlock.Text = "Максимальная длина ника — 16 символов.";
+                return;
+            }
+            if (email.Length > 30)
+            {
+                MessageTextBlock.Text = "Максимальная длина почты — 30 символов.";
+                return;
+            }
+
             var existingPlayerByUsername = PlayerService.GetPlayerByUsername(username);
             var existingPlayerByEmail = PlayerService.GetPlayerByEmail(email);
 
@@ -76,7 +95,7 @@ namespace MEGAGame.Client
                 Email = email,
                 Password = BCrypt.Net.BCrypt.HashPassword(password),
                 Score = 0,
-                Rating = 1500, // Устанавливаем начальный рейтинг 1500
+                Rating = 1500,
                 RegistrationDate = DateTime.Now,
                 LastLogin = DateTime.Now
             };

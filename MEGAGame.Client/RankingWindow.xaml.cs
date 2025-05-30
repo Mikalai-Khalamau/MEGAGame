@@ -25,8 +25,7 @@ namespace MEGAGame.Client
                 {
                     Rank = index + 1,
                     Name = player.Username,
-                    Email = player.Email,
-                    player.Rating
+                    Rating = player.Rating
                 }).ToList();
 
                 RankingList.ItemsSource = rankedPlayers;

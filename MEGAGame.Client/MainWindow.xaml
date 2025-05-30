@@ -1,89 +1,103 @@
 ﻿<Window x:Class="MEGAGame.Client.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Игровое окно" WindowState="Maximized" WindowStyle="None">
+        Title="MEGAGame" WindowState="Maximized" WindowStyle="None">
     <Grid Background="#E3F2FD">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- Кнопка перехода в главное меню -->
-        <Button Grid.Row="0" Content="В главное меню" Click="GoToMainMenu_Click" HorizontalAlignment="Right" VerticalAlignment="Top" 
-                Width="150" Height="40" Margin="0,10,20,10" Background="#42A5F5" Foreground="White" 
-                FontSize="16" FontWeight="Bold" ToolTip="Вернуться в главное меню"/>
-
-        <!-- Основная сетка для интерфейса игры -->
-        <Grid Grid.Row="1" Margin="0,20,20,20">
+        <!-- Панель информации об игроке и раунде -->
+        <Grid Grid.Row="0" Margin="10">
             <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="10"/>
-                <ColumnDefinition Width="400"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock x:Name="PlayerInfo" Grid.Column="0" FontSize="20" Foreground="#0D47A1"/>
+            <TextBlock x:Name="RoundInfo" Grid.Column="1" FontSize="24" FontWeight="Bold" Foreground="#0D47A1" 
+                       HorizontalAlignment="Center"/>
+            <Button x:Name="InfoButton" Grid.Column="2" Content="i" Width="30" Height="30" FontSize="16" FontStyle="Italic" 
+                    Background="#42A5F5" Foreground="White" Margin="5,0,0,0" MouseEnter="InfoButton_MouseEnter" MouseLeave="InfoButton_MouseLeave"/>
+            <!-- Popup с StaysOpen="True" и обработчиком MouseLeave -->
+            <Popup x:Name="InfoPopup" StaysOpen="True" PlacementTarget="{Binding ElementName=InfoButton}" Placement="Bottom" Grid.Column="2">
+                <Border Background="White" BorderBrush="Black" BorderThickness="1" MaxWidth="400" MouseLeave="Popup_MouseLeave">
+                    <TextBlock x:Name="RoundInfoText" FontSize="14" Foreground="Black" TextWrapping="Wrap" Padding="5"/>
+                </Border>
+            </Popup>
+            <Button Content="Завершить игру" Click="EndGame_Click" Grid.Column="3" 
+                    Background="#EF5350" Foreground="White" FontSize="16" Margin="10,0,0,0"/>
+        </Grid>
+
+        <!-- Основная игровая зона -->
+        <Grid x:Name="GameArea" Grid.Row="1" Margin="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="3*"/>
+                <ColumnDefinition Width="1*"/>
             </Grid.ColumnDefinitions>
 
-            <!-- Область для выбора тем и вопросов -->
-            <Grid Grid.Column="0" x:Name="GameArea">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
-
-                <!-- Заголовок и информация о раунде -->
-                <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Left">
-                    <TextBlock x:Name="RoundInfo" Text="Раунд 1: Викторина" FontSize="30" FontWeight="Bold" Foreground="#0D47A1" Margin="0,0,20,0"/>
-                    <TextBlock x:Name="PlayerInfo" Text="Игрок: [Никнейм], Очки: 0" FontSize="20" Foreground="#0D47A1"/>
-                </StackPanel>
-
-                <!-- Таблица для выбора вопросов -->
-                <Grid x:Name="QuestionGridPanel" Grid.Row="1" Margin="0,20,0,0" Visibility="Visible">
-                    <Grid x:Name="QuestionGrid" Background="Transparent" Width="500" Height="400" HorizontalAlignment="Left"/>
-                </Grid>
-
-                <!-- Панель для ввода ставки (Раунд 4) -->
-                <StackPanel x:Name="BetPanel" Grid.Row="1" Visibility="Collapsed" HorizontalAlignment="Center" VerticalAlignment="Center">
-                    <TextBlock Text="Введите вашу ставку:" FontSize="24" Foreground="#0D47A1" Margin="0,0,0,10"/>
-                    <TextBox x:Name="BetInput" Width="200" FontSize="16" Margin="0,0,0,10"/>
-                    <Button Content="Подтвердить ставку" Click="SubmitBet_Click" Width="200" Height="40" Background="#42A5F5" Foreground="White" FontSize="16" FontWeight="Bold"/>
-                </StackPanel>
-
-                <!-- Итоговый экран -->
-                <StackPanel x:Name="FinalScorePanel" Grid.Row="1" Visibility="Collapsed" HorizontalAlignment="Center" VerticalAlignment="Center">
-                    <TextBlock Text="Игра завершена!" FontSize="40" FontWeight="Bold" Foreground="#0D47A1" Margin="0,0,0,20"/>
-                    <TextBlock x:Name="FinalScoreText" Text="Ваш итоговый счёт: 0" FontSize="30" Foreground="#0D47A1" Margin="0,0,0,20"/>
-                    <Button x:Name="ExitToMainMenuButton" Content="Выйти в главное меню" Click="ExitToMainMenu_Click" Width="200" Height="40" Background="#42A5F5" Foreground="White" FontSize="16" FontWeight="Bold"/>
-                </StackPanel>
+            <!-- Таблица вопросов -->
+            <Grid x:Name="QuestionGrid" Grid.Column="0" Margin="0,0,5,0">
+                <!-- Сетка будет формироваться динамически в коде -->
             </Grid>
 
-            <!-- Правая область для вопроса и результата -->
-            <Grid Grid.Column="2">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
+            <!-- Панель справа (вопрос, ответ, результат) -->
+            <StackPanel x:Name="RightPanel" Grid.Column="1" VerticalAlignment="Stretch" Margin="5,0,0,0" MaxWidth="400">
+                <!-- Текущий вопрос -->
+                <TextBlock x:Name="QuestionText" FontSize="20" Foreground="#0D47A1" TextWrapping="Wrap" 
+                           Visibility="Collapsed" Margin="0,0,0,20"/>
 
-                <!-- Панель для отображения вопроса -->
-                <StackPanel x:Name="QuestionDisplayPanel" Grid.Row="0" Visibility="Collapsed" Margin="0,0,0,10" Background="#F5F5F5" HorizontalAlignment="Stretch">
-                    <TextBlock x:Name="QuestionText" Text="Вопрос..." FontSize="24" Foreground="#424242" Margin="10" TextWrapping="Wrap"/>
-                    <StackPanel x:Name="OptionsPanel" Orientation="Vertical" Margin="10,10,10,0" Visibility="Collapsed">
-                        <RadioButton x:Name="Option1" Content="Вариант 1" FontSize="16" Margin="0,5" GroupName="Options" Checked="Option_Checked"/>
-                        <RadioButton x:Name="Option2" Content="Вариант 2" FontSize="16" Margin="0,5" GroupName="Options" Checked="Option_Checked"/>
-                        <RadioButton x:Name="Option3" Content="Вариант 3" FontSize="16" Margin="0,5" GroupName="Options" Checked="Option_Checked"/>
-                        <RadioButton x:Name="Option4" Content="Вариант 4" FontSize="16" Margin="0,5" GroupName="Options" Checked="Option_Checked"/>
-                    </StackPanel>
-                    <StackPanel x:Name="TextAnswerPanel" Orientation="Vertical" Margin="10" Visibility="Collapsed">
-                        <TextBox x:Name="TextAnswerInput" Width="250" FontSize="16" Margin="0,0,0,10" HorizontalAlignment="Left"/>
-                        <Button x:Name="TextAnswerSubmitButton" Content="Подтвердить" Click="SubmitTextAnswer_Click" Style="{StaticResource MenuButton}" Width="150" HorizontalAlignment="Left"/>
-                    </StackPanel>
-                    <Button x:Name="SubmitOptionsButton" Content="Подтвердить ответ" Click="SubmitAnswer_Click" Style="{StaticResource MenuButton}" Margin="10,10,10,0" Width="150" HorizontalAlignment="Left" Visibility="Collapsed"/>
+                <!-- Панель ставки (Раунд 4) -->
+                <StackPanel x:Name="BetPanel" Visibility="Collapsed" Margin="0,0,0,20">
+                    <TextBlock Text="Введите вашу ставку:" FontSize="20" Foreground="#0D47A1" Margin="0,0,0,10"/>
+                    <TextBox x:Name="BetInput" Width="200" FontSize="16" IsReadOnly="{Binding IsBetInputReadOnly}"/>
+                    <Button Content="Подтвердить ставку" Click="SubmitBet_Click" Width="150" Height="40" Margin="0,10,0,0" 
+                            Background="#42A5F5" Foreground="White" FontSize="16"/>
                 </StackPanel>
 
-                <!-- Панель результатов -->
-                <StackPanel x:Name="ResultPanel" Grid.Row="1" Visibility="Collapsed" Margin="0,10,0,0" Background="#F5F5F5" Width="380">
-                    <TextBlock x:Name="ResultText" FontSize="20" FontWeight="Bold" Foreground="Green" Text="Правильно!" Margin="0,10"/>
-                    <TextBlock x:Name="ScoreChangeText" FontSize="18" Foreground="#424242" Text="+100 очков" Margin="0,5"/>
-                    <TextBlock x:Name="CorrectAnswerText" FontSize="18" Foreground="#424242" Text="Правильный ответ: [Ответ]" Margin="0,5,0,10"/>
+                <!-- Панель вариантов ответа (Раунд 1) -->
+                <StackPanel x:Name="OptionsPanel" Visibility="Collapsed" Margin="0,0,0,20">
+                    <RadioButton x:Name="Option1" Content="Вариант 1" GroupName="Options" Checked="Option_Checked" Margin="0,5"/>
+                    <RadioButton x:Name="Option2" Content="Вариант 2" GroupName="Options" Checked="Option_Checked" Margin="0,5"/>
+                    <RadioButton x:Name="Option3" Content="Вариант 3" GroupName="Options" Checked="Option_Checked" Margin="0,5"/>
+                    <RadioButton x:Name="Option4" Content="Вариант 4" GroupName="Options" Checked="Option_Checked" Margin="0,5"/>
+                    <Button x:Name="SubmitOptionsButton" Content="Ответить" Click="SubmitAnswer_Click" Width="150" Height="40" Margin="0,10,0,0" 
+                            Background="#42A5F5" Foreground="White" FontSize="16"/>
                 </StackPanel>
-            </Grid>
+
+                <!-- Панель текстового ответа (Раунды 2-4) -->
+                <StackPanel x:Name="TextAnswerPanel" Visibility="Collapsed" Margin="0,0,0,20">
+                    <TextBox x:Name="TextAnswerInput" Width="300" Height="50" FontSize="16" Margin="0,0,0,10"/>
+                    <Button x:Name="TextAnswerSubmitButton" Content="Ответить" Click="SubmitTextAnswer_Click" Width="150" Height="40" 
+                            Background="#42A5F5" Foreground="White" FontSize="16"/>
+                </StackPanel>
+
+                <!-- Панель результата -->
+                <StackPanel x:Name="ResultPanel" Visibility="Collapsed" Margin="0,20,0,0">
+                    <TextBlock x:Name="ResultText" FontSize="20" HorizontalAlignment="Center"/>
+                    <TextBlock x:Name="ScoreChangeText" FontSize="16" HorizontalAlignment="Center" Foreground="#0D47A1"/>
+                    <TextBlock x:Name="CorrectAnswerText" FontSize="16" HorizontalAlignment="Center" Foreground="#0D47A1"/>
+                    <Button x:Name="GoToResultsButton" Content="Перейти к результатам" Click="GoToResults_Click" Width="200" Height="40" 
+                            Visibility="Collapsed" Background="#42A5F5" Foreground="White" FontSize="16" Margin="0,20,0,0"/>
+                </StackPanel>
+
+                <!-- Кнопка перехода к следующему раунду -->
+                <Button x:Name="NextRoundButton" Content="Перейти к следующему раунду" Click="NextRound_Click" Width="200" Height="40" 
+                        Visibility="Collapsed" Background="#42A5F5" Foreground="White" FontSize="16" Margin="0,20,0,0"/>
+            </StackPanel>
+
+            <!-- Панель итогового счёта -->
+            <StackPanel x:Name="FinalScorePanel" Grid.ColumnSpan="2" VerticalAlignment="Center" HorizontalAlignment="Center" 
+                        Visibility="Collapsed" Margin="0">
+                <TextBlock x:Name="FinalScoreText" FontSize="40" FontWeight="Bold" Foreground="#0D47A1" 
+                           TextAlignment="Center" Margin="0,0,0,20"/>
+                <TextBlock x:Name="RatingChangeText" FontSize="30" Foreground="#0D47A1" 
+                           TextAlignment="Center" Margin="0,0,0,20"/>
+                <Button Content="Вернуться в главное меню" Click="GoToMainMenu_Click" Width="200" Height="40" 
+                        Background="#42A5F5" Foreground="White" FontSize="16"/>
+            </StackPanel>
         </Grid>
     </Grid>
 </Window>

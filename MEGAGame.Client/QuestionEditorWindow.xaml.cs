@@ -22,7 +22,7 @@ namespace MEGAGame.Client
             this.WindowState = WindowState.Maximized;
             this.ResizeMode = ResizeMode.NoResize;
 
-            if (PackList == null || QuestionList == null)
+            if (PackList == null || QuestionList == null || ThemeList == null)
             {
                 MessageBox.Show("Ошибка инициализации интерфейса. Элементы управления не найдены.", "Ошибка");
                 this.Close();
@@ -74,11 +74,41 @@ namespace MEGAGame.Client
                     QuestionList.ItemsSource = groupedQuestions;
                     QuestionList.DisplayMemberPath = "DisplayText";
                     QuestionList.SelectedValuePath = "QuestionId";
+
+                    // Обновляем список тем
+                    LoadThemes();
                 }
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Ошибка при загрузке вопросов: {ex.Message}", "Ошибка");
+            }
+        }
+
+        private void LoadThemes()
+        {
+            if (selectedPack == null) return;
+
+            try
+            {
+                using (var context = new GameDbContext())
+                {
+                    var themes = context.Themes
+                        .Where(t => t.PackId == selectedPack.PackId)
+                        .Select(t => new
+                        {
+                            ThemeId = t.ThemeId,
+                            DisplayText = $"{t.Name} (Раунд {t.Round})"
+                        })
+                        .ToList();
+
+                    ThemeList.ItemsSource = themes;
+                    ThemeList.SelectedValuePath = "ThemeId";
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка при загрузке тем: {ex.Message}", "Ошибка");
             }
         }
 
@@ -96,6 +126,7 @@ namespace MEGAGame.Client
                 {
                     PackNameLabel.Text = "";
                     QuestionList.ItemsSource = null;
+                    ThemeList.ItemsSource = null;
                 }
             }
             catch (Exception ex)
@@ -284,7 +315,7 @@ namespace MEGAGame.Client
                 using (var context = new GameDbContext())
                 {
                     var themes = context.Themes
-                        .Where(t => t.CreatedBy == GameSettings.PlayerId)
+                        .Where(t => t.PackId == selectedPack.PackId)
                         .ToList();
 
                     if (!themes.Any())
@@ -382,6 +413,52 @@ namespace MEGAGame.Client
             catch (Exception ex)
             {
                 MessageBox.Show($"Ошибка при удалении вопроса: {ex.Message}", "Ошибка");
+            }
+        }
+
+        private void DeleteTheme_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (ThemeList.SelectedItem == null)
+                {
+                    MessageBox.Show("Выберите тему для удаления.", "Ошибка");
+                    return;
+                }
+
+                dynamic selectedItem = ThemeList.SelectedItem;
+                int themeId = selectedItem.ThemeId;
+
+                using (var context = new GameDbContext())
+                {
+                    var theme = context.Themes
+                        .Include(t => t.Questions)
+                        .FirstOrDefault(t => t.ThemeId == themeId);
+                    if (theme == null)
+                    {
+                        MessageBox.Show("Тема не найдена.", "Ошибка");
+                        return;
+                    }
+
+                    var result = MessageBox.Show($"Вы уверены, что хотите удалить тему '{theme.Name}'? Все связанные вопросы также будут удалены.",
+                        "Подтверждение удаления", MessageBoxButton.YesNo);
+                    if (result != MessageBoxResult.Yes) return;
+
+                    // Удаляем все вопросы, связанные с темой
+                    if (theme.Questions != null && theme.Questions.Any())
+                    {
+                        context.Questions.RemoveRange(theme.Questions);
+                    }
+
+                    // Удаляем саму тему
+                    context.Themes.Remove(theme);
+                    context.SaveChanges();
+                    LoadQuestions();
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка при удалении темы: {ex.Message}", "Ошибка");
             }
         }
 

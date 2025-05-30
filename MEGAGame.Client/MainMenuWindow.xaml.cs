@@ -29,38 +29,28 @@ namespace MEGAGame.Client
 
         private void SinglePlayer_Click(object sender, RoutedEventArgs e)
         {
-            using (var context = new GameDbContext())
+            try
             {
-                var packs = context.QuestionPacks
-                    .Where(p => p.IsPublished)
-                    .ToList();
-
-                if (!packs.Any())
+                using (var context = new GameDbContext())
                 {
-                    MessageBox.Show("Нет опубликованных пакетов вопросов! Создайте и опубликуйте пакет в редакторе вопросов.");
-                    return;
-                }
+                    var packs = context.QuestionPacks
+                        .Where(p => p.IsPublished)
+                        .ToList();
 
-                var packNames = packs.Select(p => p.Name).ToList();
-                string selectedPack = Microsoft.VisualBasic.Interaction.InputBox(
-                    "Выберите пакет вопросов:\n" + string.Join("\n", packNames),
-                    "Выбор пакета");
+                    if (!packs.Any())
+                    {
+                        MessageBox.Show("Нет опубликованных пакетов вопросов! Создайте и опубликуйте пакет в редакторе вопросов.");
+                        return;
+                    }
 
-                if (string.IsNullOrWhiteSpace(selectedPack) || !packNames.Contains(selectedPack))
-                {
-                    MessageBox.Show("Пакет не выбран или выбран некорректно!");
-                    return;
-                }
-
-                var pack = packs.FirstOrDefault(p => p.Name == selectedPack);
-                if (pack != null)
-                {
-                    GameSettings.CurrentRound = 1;
-                    GameSettings.PlayerScore = 0;
-                    GameSettings.SelectedPackId = pack.PackId;
-                    new MainWindow().Show();
+                    var packSelectionWindow = new SinglePlayerPackSelectionWindow(_currentPlayer);
+                    packSelectionWindow.Show();
                     this.Close();
                 }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка при открытии выбора пакетов: {ex.Message}", "Ошибка");
             }
         }
 

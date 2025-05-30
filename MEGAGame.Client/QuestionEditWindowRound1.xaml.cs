@@ -1,149 +1,115 @@
 ﻿using System;
 using System.Windows;
-using System.Windows.Controls;
 using MEGAGame.Core.Data;
 using MEGAGame.Core.Models;
 using MahApps.Metro.Controls;
-using MEGAGame.Core.Services;
 
 namespace MEGAGame.Client
 {
     public partial class QuestionEditWindowRound1 : MetroWindow
     {
         private readonly QuestionPack selectedPack;
-        private readonly Theme selectedTheme;
-        private Question question;
+        private readonly Question question;
 
-        public QuestionEditWindowRound1(QuestionPack pack, Theme theme)
+        public QuestionEditWindowRound1(QuestionPack pack, Question questionToEdit)
         {
             InitializeComponent();
-            this.WindowState = WindowState.Maximized;
-            this.ResizeMode = ResizeMode.NoResize;
             selectedPack = pack;
-            selectedTheme = theme;
-            ThemeTextBlock.Text = $"Тема: {selectedTheme.Name}";
-            RoundTextBlock.Text = $"Раунд: Викторина";
-        }
+            question = questionToEdit;
 
-        public QuestionEditWindowRound1(QuestionPack pack, Question existingQuestion)
-        {
-            InitializeComponent();
-            this.WindowState = WindowState.Maximized;
-            this.ResizeMode = ResizeMode.NoResize;
-            selectedPack = pack;
-            question = existingQuestion;
-            ThemeTextBlock.Text = $"Тема: {question.Theme.Name}";
-            RoundTextBlock.Text = $"Раунд: Викторина";
+            // Заполняем поля текущими значениями вопроса
             QuestionTextBox.Text = question.Text;
+            Option1TextBox.Text = question.Option1;
+            Option2TextBox.Text = question.Option2;
+            Option3TextBox.Text = question.Option3;
+            Option4TextBox.Text = question.Option4;
+            CorrectOptionTextBox.Text = question.CorrectOption.ToString();
             PointsTextBox.Text = question.Points.ToString();
-            Option1TextBox.Text = string.IsNullOrEmpty(question.Option1) || question.Option1 == "N/A" ? "" : question.Option1;
-            Option2TextBox.Text = string.IsNullOrEmpty(question.Option2) || question.Option2 == "N/A" ? "" : question.Option2;
-            Option3TextBox.Text = string.IsNullOrEmpty(question.Option3) || question.Option3 == "N/A" ? "" : question.Option3;
-            Option4TextBox.Text = string.IsNullOrEmpty(question.Option4) || question.Option4 == "N/A" ? "" : question.Option4;
-            if (question.CorrectOption.HasValue)
-            {
-                CorrectOptionComboBox.SelectedIndex = question.CorrectOption.Value - 1;
-            }
         }
 
-        private void SaveQuestion_Click(object sender, RoutedEventArgs e)
+        private void Save_Click(object sender, RoutedEventArgs e)
         {
             try
             {
-                if (string.IsNullOrWhiteSpace(QuestionTextBox.Text) ||
-                    string.IsNullOrWhiteSpace(PointsTextBox.Text) ||
-                    string.IsNullOrWhiteSpace(Option1TextBox.Text) ||
-                    string.IsNullOrWhiteSpace(Option2TextBox.Text) ||
-                    string.IsNullOrWhiteSpace(Option3TextBox.Text) ||
-                    string.IsNullOrWhiteSpace(Option4TextBox.Text) ||
-                    CorrectOptionComboBox.SelectedItem == null)
+                string questionText = QuestionTextBox.Text.Trim();
+                string option1 = Option1TextBox.Text.Trim();
+                string option2 = Option2TextBox.Text.Trim();
+                string option3 = Option3TextBox.Text.Trim();
+                string option4 = Option4TextBox.Text.Trim();
+                string correctOptionStr = CorrectOptionTextBox.Text.Trim();
+                string pointsStr = PointsTextBox.Text.Trim();
+
+                if (string.IsNullOrWhiteSpace(questionText) || string.IsNullOrWhiteSpace(option1) ||
+                    string.IsNullOrWhiteSpace(option2) || string.IsNullOrWhiteSpace(option3) ||
+                    string.IsNullOrWhiteSpace(option4) || string.IsNullOrWhiteSpace(correctOptionStr) ||
+                    string.IsNullOrWhiteSpace(pointsStr))
                 {
-                    MessageBox.Show("Все поля должны быть заполнены.", "Ошибка");
+                    MessageBox.Show("Заполните все поля!", "Ошибка");
                     return;
                 }
 
-                if (!int.TryParse(PointsTextBox.Text, out int points) || points <= 0)
+                if (!int.TryParse(correctOptionStr, out int correctOption) || correctOption < 1 || correctOption > 4)
                 {
-                    MessageBox.Show("Номинал должен быть положительным числом.", "Ошибка");
+                    MessageBox.Show("Некорректный номер правильного ответа. Укажите число от 1 до 4.", "Ошибка");
                     return;
                 }
 
-                var selectedItem = CorrectOptionComboBox.SelectedItem as ComboBoxItem;
-                if (selectedItem == null)
+                if (!int.TryParse(pointsStr, out int points) || points <= 0)
                 {
-                    MessageBox.Show("Выберите правильный вариант.", "Ошибка");
+                    MessageBox.Show("Некорректное количество очков. Укажите положительное число.", "Ошибка");
                     return;
                 }
-                int correctOption = int.Parse(selectedItem.Tag.ToString());
 
                 using (var context = new GameDbContext())
                 {
-                    int themeId = selectedTheme != null ? selectedTheme.ThemeId : (question != null ? question.ThemeId : 0);
-                    if (themeId == 0 || context.Themes.Find(themeId) == null)
+                    // Если вопрос новый (QuestionId == 0), добавляем его
+                    if (question.QuestionId == 0)
                     {
-                        MessageBox.Show("Выбранная тема не существует.", "Ошибка");
-                        return;
+                        question.Text = questionText;
+                        question.Option1 = option1;
+                        question.Option2 = option2;
+                        question.Option3 = option3;
+                        question.Option4 = option4;
+                        question.CorrectOption = correctOption;
+                        question.Points = points;
+                        question.LastUpdated = DateTime.Now;
+
+                        context.Questions.Add(question);
+                    }
+                    else
+                    {
+                        // Если вопрос уже существует, обновляем его
+                        var questionToUpdate = context.Questions.FirstOrDefault(q => q.QuestionId == question.QuestionId);
+                        if (questionToUpdate == null)
+                        {
+                            MessageBox.Show("Вопрос не найден.", "Ошибка");
+                            return;
+                        }
+
+                        questionToUpdate.Text = questionText;
+                        questionToUpdate.Option1 = option1;
+                        questionToUpdate.Option2 = option2;
+                        questionToUpdate.Option3 = option3;
+                        questionToUpdate.Option4 = option4;
+                        questionToUpdate.CorrectOption = correctOption;
+                        questionToUpdate.Points = points;
+                        questionToUpdate.LastUpdated = DateTime.Now;
                     }
 
-                    if (context.QuestionPacks.Find(selectedPack.PackId) == null)
-                    {
-                        MessageBox.Show("Выбранный пакет не существует.", "Ошибка");
-                        return;
-                    }
-
-                    if (context.Players.Find(GameSettings.PlayerId) == null)
-                    {
-                        MessageBox.Show("Игрок не найден.", "Ошибка");
-                        return;
-                    }
-
-                    var existingQuestion = context.Questions
-                        .FirstOrDefault(q => q.Text == QuestionTextBox.Text && q.ThemeId == themeId && q.QuestionId != (question != null ? question.QuestionId : 0));
-                    if (existingQuestion != null)
-                    {
-                        MessageBox.Show("Вопрос с таким текстом уже существует в этой теме.", "Ошибка");
-                        return;
-                    }
-
-                    var newQuestion = question ?? new Question
-                    {
-                        PackId = selectedPack.PackId,
-                        ThemeId = themeId,
-                        CreatedBy = GameSettings.PlayerId,
-                        CreatedDate = DateTime.Now,
-                        LastUpdated = DateTime.Now,
-                        IsActive = true,
-                        IsPlayed = false
-                    };
-
-                    newQuestion.Text = QuestionTextBox.Text;
-                    newQuestion.Points = points;
-                    newQuestion.Round = 1;
-                    newQuestion.Option1 = Option1TextBox.Text;
-                    newQuestion.Option2 = Option2TextBox.Text;
-                    newQuestion.Option3 = Option3TextBox.Text;
-                    newQuestion.Option4 = Option4TextBox.Text;
-                    newQuestion.CorrectOption = correctOption;
-                    newQuestion.Answer = "N/A";
-
-                    if (question == null)
-                    {
-                        context.Questions.Add(newQuestion);
-                    }
                     context.SaveChanges();
+                    MessageBox.Show("Вопрос успешно сохранён!", "Успех");
+                    Close();
                 }
-
-                this.Close();
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Ошибка при сохранении вопроса: {ex.Message}\nВнутреннее исключение: {ex.InnerException?.Message}", "Ошибка");
+                MessageBox.Show($"Ошибка при сохранении вопроса: {ex.Message}", "Ошибка");
             }
         }
 
         private void Cancel_Click(object sender, RoutedEventArgs e)
         {
-            this.Close();
+            Close();
         }
     }
 }

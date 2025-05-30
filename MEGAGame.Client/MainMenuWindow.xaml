@@ -16,7 +16,7 @@
 
         <!-- Заголовок -->
         <TextBlock Grid.Row="0" Text="MEGA Game" FontSize="40" FontWeight="Bold" Foreground="#0D47A1" 
-                   HorizontalAlignment="Center" Margin="0,20,0,20"/>
+                   HorizontalAlignment="Center" Margin="0,60,0,20"/>
 
         <!-- Кнопки меню -->
         <StackPanel Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center">

@@ -1,22 +1,36 @@
-﻿<mah:MetroWindow x:Class="MEGAGame.Client.QuestionSelectionWindow"
-                 xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-                 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                 xmlns:mah="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
-                 Title="Выбор темы для вопроса" WindowState="Maximized" ResizeMode="NoResize" Background="#E3F2FD">
+﻿<metro:MetroWindow x:Class="MEGAGame.Client.QuestionSelectionWindow"
+                   xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                   xmlns:metro="http://metro.mahapps.com/winfx/xaml/controls"
+                   Title="Выбор темы для вопроса" Width="600" Height="400">
     <Grid Margin="20">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <TextBlock Grid.Row="0" Text="Выбор темы для вопроса" FontSize="30" FontWeight="Bold" Foreground="#0D47A1" Margin="0,0,0,20"/>
-        <TextBlock Grid.Row="1" Text="Выберите тему:" FontSize="16" Foreground="#0D47A1"/>
-        <ComboBox x:Name="ThemeComboBox" Grid.Row="2" Margin="0,5,0,20" Width="300"/>
-        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,20,0,0">
-            <Button Content="Добавить вопрос" Click="AddQuestion_Click" Padding="10" Width="120"/>
-            <Button Content="Отмена" Click="Cancel_Click" Padding="10" Width="120" Margin="10,0,0,0"/>
+        <TextBlock Grid.Row="0" Text="Выберите тему для вопроса" FontSize="24" FontWeight="Bold" 
+                   Foreground="#0D47A1" HorizontalAlignment="Center" Margin="0,0,0,20"/>
+
+        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,10">
+            <TextBlock Text="Тема:" FontSize="20" Foreground="#0D47A1" Margin="0,0,10,0" VerticalAlignment="Center"/>
+            <ComboBox x:Name="ThemeComboBox" Width="300" Height="30" SelectionChanged="ThemeComboBox_SelectionChanged"/>
+        </StackPanel>
+
+        <TextBlock x:Name="ThemeNameLabel" Grid.Row="2" FontSize="20" Foreground="#0D47A1" 
+                   HorizontalAlignment="Center" Margin="0,0,0,10"/>
+
+        <TextBlock x:Name="RoundLabel" Grid.Row="3" FontSize="20" Foreground="#0D47A1" 
+                   HorizontalAlignment="Center" Margin="0,0,0,20"/>
+
+        <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Center">
+            <Button Content="Добавить вопрос" Click="AddQuestion_Click" Width="150" Height="40" Margin="0,0,10,0" 
+                    Background="#42A5F5" Foreground="White" FontSize="16"/>
+            <Button Content="Назад" Click="Back_Click" Width="150" Height="40" 
+                    Background="#EF5350" Foreground="White" FontSize="16"/>
         </StackPanel>
     </Grid>
-</mah:MetroWindow>
+</metro:MetroWindow>

@@ -12,6 +12,7 @@ namespace MEGAGame.Core.Data
         public DbSet<Question> Questions { get; set; }
         public DbSet<GameSession> GameSessions { get; set; }
         public DbSet<SessionPlayer> SessionPlayers { get; set; }
+        public DbSet<PlayedPack> PlayedPacks { get; set; } // Новая таблица
 
         public GameDbContext() { }
 
@@ -43,6 +44,17 @@ namespace MEGAGame.Core.Data
                 .HasOne(q => q.CreatedByPlayer)
                 .WithMany()
                 .HasForeignKey(q => q.CreatedBy);
+
+            // Настройка связей для PlayedPack
+            modelBuilder.Entity<PlayedPack>()
+                .HasOne(pp => pp.Player)
+                .WithMany()
+                .HasForeignKey(pp => pp.PlayerId);
+
+            modelBuilder.Entity<PlayedPack>()
+                .HasOne(pp => pp.Pack)
+                .WithMany()
+                .HasForeignKey(pp => pp.PackId);
         }
     }
 }
