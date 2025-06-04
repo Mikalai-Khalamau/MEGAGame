@@ -12,7 +12,9 @@ namespace MEGAGame.Core.Data
         public DbSet<Question> Questions { get; set; }
         public DbSet<GameSession> GameSessions { get; set; }
         public DbSet<SessionPlayer> SessionPlayers { get; set; }
-        public DbSet<PlayedPack> PlayedPacks { get; set; } // Новая таблица
+        public DbSet<PlayedPack> PlayedPacks { get; set; }
+        public DbSet<Achievement> Achievements { get; set; }
+        public DbSet<PlayerAchievement> PlayerAchievements { get; set; }
 
         public GameDbContext() { }
 
@@ -24,7 +26,8 @@ namespace MEGAGame.Core.Data
             {
                 optionsBuilder.UseMySql("Server=localhost;Database=megagame_db;User=Nikolay;Password=7b2bru43.2d3we;",
                                        new MySqlServerVersion(new Version(8, 4, 0)))
-                              .LogTo(Console.WriteLine, LogLevel.Information);
+                              .LogTo(Console.WriteLine, LogLevel.Information)
+                              .EnableSensitiveDataLogging();
             }
         }
 
@@ -45,7 +48,6 @@ namespace MEGAGame.Core.Data
                 .WithMany()
                 .HasForeignKey(q => q.CreatedBy);
 
-            // Настройка связей для PlayedPack
             modelBuilder.Entity<PlayedPack>()
                 .HasOne(pp => pp.Player)
                 .WithMany()
@@ -55,6 +57,33 @@ namespace MEGAGame.Core.Data
                 .HasOne(pp => pp.Pack)
                 .WithMany()
                 .HasForeignKey(pp => pp.PackId);
+
+            modelBuilder.Entity<Question>(e =>
+            {
+                e.Property(q => q.Answer2).IsRequired(false);
+                e.Property(q => q.Answer3).IsRequired(false);
+            });
+
+            modelBuilder.Entity<PlayerAchievement>()
+                .HasOne(pa => pa.Player)
+                .WithMany()
+                .HasForeignKey(pa => pa.PlayerId);
+
+            modelBuilder.Entity<PlayerAchievement>()
+                .HasOne(pa => pa.Achievement)
+                .WithMany()
+                .HasForeignKey(pa => pa.AchievementId);
+
+            modelBuilder.Entity<GameSession>()
+                .HasKey(gs => gs.SessionId);
+
+            modelBuilder.Entity<SessionPlayer>()
+                .HasKey(sp => sp.SessionPlayerId); // Используем SessionPlayerId как первичный ключ
+
+            modelBuilder.Entity<SessionPlayer>()
+                .HasOne(sp => sp.Session)
+                .WithMany(s => s.Players)
+                .HasForeignKey(sp => sp.SessionId);
         }
     }
 }

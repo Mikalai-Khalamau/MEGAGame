@@ -38,7 +38,7 @@
         <TextBlock Grid.Row="10" Text="Очки:" FontSize="16" Foreground="#0D47A1" Margin="0,0,0,5"/>
         <TextBox x:Name="PointsTextBox" Grid.Row="11" Width="400" Height="30" Margin="0,0,0,30"/>
 
-        <StackPanel Grid.Row="12" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,20,0,0">
+        <StackPanel Grid.Row="12" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,0">
             <Button Content="Сохранить" Click="Save_Click" Width="150" Height="40" Margin="0,0,10,0" 
                     Background="#42A5F5" Foreground="White" FontSize="16"/>
             <Button Content="Отмена" Click="Cancel_Click" Width="150" Height="40" 

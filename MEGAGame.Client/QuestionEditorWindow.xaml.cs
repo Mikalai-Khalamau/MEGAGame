@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualBasic;
 using MahApps.Metro.Controls;
 using MEGAGame.Core.Services;
-
+using MEGAGame.Core;
 namespace MEGAGame.Client
 {
     public partial class QuestionEditorWindow : MetroWindow
@@ -47,7 +47,7 @@ namespace MEGAGame.Client
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Ошибка при загрузке пакетов: {ex.Message}", "Ошибка");
+                MessageBox.Show($"Ошибка при загрузке пакетов: {ex.Message}\nПодробности: {ex.StackTrace}", "Ошибка");
             }
         }
 
@@ -59,29 +59,51 @@ namespace MEGAGame.Client
             {
                 using (var context = new GameDbContext())
                 {
-                    var questions = context.Questions
-                        .Where(q => q.PackId == selectedPack.PackId)
+                    // Загружаем вопросы
+                    var questionsQuery = context.Questions
+                        .Where(q => q.PackId == selectedPack.PackId);
+
+                    // Попробуем загрузить данные поэтапно для отладки
+                    var questions = questionsQuery
+                        .Select(q => new
+                        {
+                            q.QuestionId,
+                            q.Text,
+                            q.Option1,
+                            q.Option2,
+                            q.Option3,
+                            q.Option4,
+                            q.Answer,
+                            q.Answer2,
+                            q.Answer3,
+                            q.ThemeId,
+                            q.PackId
+                        })
                         .ToList();
+
+                    // Если ошибка не возникла, продолжаем
+                    var themes = context.Themes
+                        .Where(t => t.PackId == selectedPack.PackId)
+                        .ToDictionary(t => t.ThemeId, t => t.Name ?? "Без темы");
 
                     var groupedQuestions = questions.Select(q => new
                     {
                         QuestionId = q.QuestionId,
-                        ThemeName = context.Themes.FirstOrDefault(t => t.ThemeId == q.ThemeId)?.Name ?? "Без темы",
-                        QuestionText = q.Text,
-                        DisplayText = $"{context.Themes.FirstOrDefault(t => t.ThemeId == q.ThemeId)?.Name ?? "Без темы"}: {q.Text}"
+                        ThemeName = themes.ContainsKey(q.ThemeId) ? themes[q.ThemeId] : "Тема не найдена",
+                        QuestionText = q.Text ?? "Без текста",
+                        DisplayText = $"{(themes.ContainsKey(q.ThemeId) ? themes[q.ThemeId] : "Тема не найдена")}: {q.Text ?? "Без текста"}"
                     }).ToList();
 
                     QuestionList.ItemsSource = groupedQuestions;
                     QuestionList.DisplayMemberPath = "DisplayText";
                     QuestionList.SelectedValuePath = "QuestionId";
 
-                    // Обновляем список тем
                     LoadThemes();
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Ошибка при загрузке вопросов: {ex.Message}", "Ошибка");
+                MessageBox.Show($"Ошибка при загрузке вопросов: {ex.Message}\nПодробности: {ex.StackTrace}", "Ошибка");
             }
         }
 
@@ -98,7 +120,7 @@ namespace MEGAGame.Client
                         .Select(t => new
                         {
                             ThemeId = t.ThemeId,
-                            DisplayText = $"{t.Name} (Раунд {t.Round})"
+                            DisplayText = $"{t.Name ?? "Без названия"} (Раунд {t.Round})"
                         })
                         .ToList();
 
@@ -108,7 +130,7 @@ namespace MEGAGame.Client
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Ошибка при загрузке тем: {ex.Message}", "Ошибка");
+                MessageBox.Show($"Ошибка при загрузке тем: {ex.Message}\nПодробности: {ex.StackTrace}", "Ошибка");
             }
         }
 
@@ -119,7 +141,7 @@ namespace MEGAGame.Client
                 selectedPack = PackList.SelectedItem as QuestionPack;
                 if (selectedPack != null)
                 {
-                    PackNameLabel.Text = selectedPack.Name;
+                    PackNameLabel.Text = selectedPack.Name ?? "Без названия";
                     LoadQuestions();
                 }
                 else
@@ -197,7 +219,6 @@ namespace MEGAGame.Client
                         return;
                     }
 
-                    // Проверка наличия тем по каждому раунду
                     var themesByRound = packToPublish.Themes
                         .GroupBy(t => t.Round)
                         .ToDictionary(g => g.Key, g => g.ToList());
@@ -219,7 +240,6 @@ namespace MEGAGame.Client
                         return;
                     }
 
-                    // Проверка наличия вопросов в каждой теме
                     bool allThemesHaveQuestions = true;
                     string themesWithoutQuestions = "";
                     foreach (var theme in packToPublish.Themes)
@@ -227,7 +247,7 @@ namespace MEGAGame.Client
                         if (theme.Questions == null || theme.Questions.Count == 0)
                         {
                             allThemesHaveQuestions = false;
-                            themesWithoutQuestions += $"{theme.Name} (Раунд {theme.Round}), ";
+                            themesWithoutQuestions += $"{theme.Name ?? "Без названия"} (Раунд {theme.Round}), ";
                         }
                     }
                     if (!allThemesHaveQuestions)
@@ -237,7 +257,7 @@ namespace MEGAGame.Client
                         return;
                     }
 
-                    var result = MessageBox.Show($"Вы уверены, что хотите опубликовать пакет '{selectedPack.Name}'?",
+                    var result = MessageBox.Show($"Вы уверены, что хотите опубликовать пакет '{selectedPack.Name ?? "Без названия"}'?",
                         "Подтверждение публикации", MessageBoxButton.YesNo);
                     if (result != MessageBoxResult.Yes) return;
 
@@ -245,7 +265,7 @@ namespace MEGAGame.Client
                     packToPublish.LastUpdated = DateTime.Now;
                     context.SaveChanges();
 
-                    MessageBox.Show($"Пакет '{selectedPack.Name}' успешно опубликован!", "Успех");
+                    MessageBox.Show($"Пакет '{selectedPack.Name ?? "Без названия"}' успешно опубликован!", "Успех");
                     LoadPacks();
                 }
             }
@@ -402,7 +422,7 @@ namespace MEGAGame.Client
                         return;
                     }
 
-                    var result = MessageBox.Show($"Вы уверены, что хотите удалить вопрос: {question.Text}?", "Подтверждение удаления", MessageBoxButton.YesNo);
+                    var result = MessageBox.Show($"Вы уверены, что хотите удалить вопрос: {question.Text ?? "Без текста"}?", "Подтверждение удаления", MessageBoxButton.YesNo);
                     if (result != MessageBoxResult.Yes) return;
 
                     context.Questions.Remove(question);
@@ -440,17 +460,15 @@ namespace MEGAGame.Client
                         return;
                     }
 
-                    var result = MessageBox.Show($"Вы уверены, что хотите удалить тему '{theme.Name}'? Все связанные вопросы также будут удалены.",
+                    var result = MessageBox.Show($"Вы уверены, что хотите удалить тему '{theme.Name ?? "Без названия"}'? Все связанные вопросы также будут удалены.",
                         "Подтверждение удаления", MessageBoxButton.YesNo);
                     if (result != MessageBoxResult.Yes) return;
 
-                    // Удаляем все вопросы, связанные с темой
                     if (theme.Questions != null && theme.Questions.Any())
                     {
                         context.Questions.RemoveRange(theme.Questions);
                     }
 
-                    // Удаляем саму тему
                     context.Themes.Remove(theme);
                     context.SaveChanges();
                     LoadQuestions();

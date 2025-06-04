@@ -2,7 +2,7 @@
 using System.Windows;
 using MEGAGame.Core.Data;
 using MEGAGame.Core.Services;
-
+using MEGAGame.Core;
 namespace MEGAGame.Client
 {
     public partial class RankingWindow : Window

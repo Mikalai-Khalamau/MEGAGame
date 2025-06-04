@@ -14,24 +14,70 @@
             <TextBlock x:Name="PlayerRatingTextBlock" Text="Рейтинг: " FontSize="18" Foreground="#0D47A1"/>
         </StackPanel>
 
+        <!-- Выбор музыки -->
+        <StackPanel Grid.Row="0" Orientation="Horizontal" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,10,10,0">
+            <TextBlock Text="🎵 Музыка:" FontSize="16" Foreground="#0D47A1" Margin="0,0,5,0" VerticalAlignment="Center"/>
+            <ComboBox x:Name="MusicSelectionComboBox" Width="150" Height="35" SelectionChanged="MusicSelectionComboBox_SelectionChanged">
+                <ComboBox.Style>
+                    <Style TargetType="ComboBox">
+                        <Setter Property="Background" Value="#BBDEFB"/>
+                        <Setter Property="BorderBrush" Value="#0D47A1"/>
+                        <Setter Property="BorderThickness" Value="1"/>
+                        <Setter Property="Foreground" Value="#0D47A1"/>
+                        <Setter Property="FontSize" Value="18"/>
+                        <Setter Property="Padding" Value="5"/>
+                        <Style.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#90CAF9"/>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </ComboBox.Style>
+                <ComboBoxItem Content="Без музыки"/>
+                <ComboBoxItem Content="Трек 1"/>
+                <ComboBoxItem Content="Трек 2"/>
+                <ComboBoxItem Content="Трек 3"/>
+                <ComboBoxItem Content="Трек 4"/>
+                <ComboBoxItem Content="Трек 5"/>
+            </ComboBox>
+        </StackPanel>
+
         <!-- Заголовок -->
-        <TextBlock Grid.Row="0" Text="MEGA Game" FontSize="40" FontWeight="Bold" Foreground="#0D47A1" 
-                   HorizontalAlignment="Center" Margin="0,60,0,20"/>
+        <TextBlock Grid.Row="0" Text="MEGA Game" FontSize="60" FontWeight="Bold" Foreground="#0D47A1" 
+                   HorizontalAlignment="Center" Margin="0,80,0,20"/>
 
         <!-- Кнопки меню -->
         <StackPanel Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center">
-            <Button Content="Одиночная игра" Click="SinglePlayer_Click" Width="200" Height="40" Margin="0,10" 
-                    Background="#42A5F5" Foreground="White" FontSize="16" FontWeight="Bold"/>
-            <Button Content="Игра с другом" Click="PlayWithFriend_Click" Width="200" Height="40" Margin="0,10" 
-                    Background="#42A5F5" Foreground="White" FontSize="16" FontWeight="Bold"/>
-            <Button Content="Игра по сети" Click="PlayOnline_Click" Width="200" Height="40" Margin="0,10" 
-                    Background="#42A5F5" Foreground="White" FontSize="16" FontWeight="Bold"/>
-            <Button Content="Рейтинг" Click="ShowRating_Click" Width="200" Height="40" Margin="0,10" 
-                    Background="#42A5F5" Foreground="White" FontSize="16" FontWeight="Bold"/>
-            <Button Content="Редактор вопросов" Click="QuestionEditor_Click" Width="200" Height="40" Margin="0,10" 
-                    Background="#42A5F5" Foreground="White" FontSize="16" FontWeight="Bold"/>
-            <Button Content="Выход" Click="Exit_Click" Width="200" Height="40" Margin="0,10" 
-                    Background="#EF5350" Foreground="White" FontSize="16" FontWeight="Bold"/>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Левый столбец: Игровые режимы -->
+                <StackPanel Grid.Column="0" Margin="0,0,20,0">
+                    <Button Content="Одиночная игра" Click="SinglePlayer_Click" Width="200" Height="40" Margin="0,10" 
+                            Background="#42A5F5" Foreground="White" FontSize="16" FontWeight="Bold"/>
+                    <Button Content="Игра с другом" Click="PlayWithFriend_Click" Width="200" Height="40" Margin="0,10" 
+                            Background="#42A5F5" Foreground="White" FontSize="16" FontWeight="Bold"/>
+                    <Button Content="Игра против бота" Click="PlayWithBot_Click" Width="200" Height="40" Margin="0,10" 
+                            Background="#42A5F5" Foreground="White" FontSize="16" FontWeight="Bold"/>
+                    <Button Content="Игра по сети" Click="PlayOnline_Click" Width="200" Height="40" Margin="0,10" 
+                            Background="#42A5F5" Foreground="White" FontSize="16" FontWeight="Bold"/>
+                </StackPanel>
+
+                <!-- Правый столбец: Дополнительные функции -->
+                <StackPanel Grid.Column="1" Margin="20,0,0,0">
+                    <Button Content="Рейтинг" Click="ShowRating_Click" Width="200" Height="40" Margin="0,10" 
+                            Background="#42A5F5" Foreground="White" FontSize="16" FontWeight="Bold"/>
+                    <Button Content="Достижения" Click="ShowAchievements_Click" Width="200" Height="40" Margin="0,10" 
+                            Background="#42A5F5" Foreground="White" FontSize="16" FontWeight="Bold"/>
+                    <Button Content="Редактор вопросов" Click="QuestionEditor_Click" Width="200" Height="40" Margin="0,10" 
+                            Background="#42A5F5" Foreground="White" FontSize="16" FontWeight="Bold"/>
+                    <Button Content="Выход" Click="Exit_Click" Width="200" Height="40" Margin="0,10" 
+                            Background="#EF5350" Foreground="White" FontSize="16" FontWeight="Bold"/>
+                </StackPanel>
+            </Grid>
         </StackPanel>
     </Grid>
 </Window>

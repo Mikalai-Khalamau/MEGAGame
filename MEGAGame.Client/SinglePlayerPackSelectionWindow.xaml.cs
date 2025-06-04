@@ -18,13 +18,17 @@ namespace MEGAGame.Client
 
     public partial class SinglePlayerPackSelectionWindow : Window
     {
-        private readonly Player currentPlayer;
-        private List<PackDisplayItem> packItems;
+        private readonly Player _currentPlayer;
+        private List<PackDisplayItem> _packItems;
+        private readonly bool _isFriendMode;
+        private readonly bool _isBotMode;
 
-        public SinglePlayerPackSelectionWindow(Player player)
+        public SinglePlayerPackSelectionWindow(Player player, bool friendMode = false, bool isBotMode = false)
         {
             InitializeComponent();
-            currentPlayer = player;
+            _currentPlayer = player ?? throw new ArgumentNullException(nameof(player));
+            _isFriendMode = friendMode;
+            _isBotMode = isBotMode;
             LoadPacks();
         }
 
@@ -34,26 +38,23 @@ namespace MEGAGame.Client
             {
                 using (var context = new GameDbContext())
                 {
-                    // Получаем все опубликованные пакеты
                     var packs = context.QuestionPacks
                         .Where(p => p.IsPublished)
                         .ToList();
 
-                    // Получаем список сыгранных пакетов для текущего игрока
                     var playedPacks = context.PlayedPacks
-                        .Where(pp => pp.PlayerId == currentPlayer.PlayerId)
+                        .Where(pp => pp.PlayerId == _currentPlayer.PlayerId)
                         .Select(pp => pp.PackId)
                         .ToList();
 
-                    // Формируем отображаемые элементы
-                    packItems = new List<PackDisplayItem>();
+                    _packItems = new List<PackDisplayItem>();
                     foreach (var pack in packs)
                     {
                         var creator = context.Players.FirstOrDefault(p => p.PlayerId == pack.CreatedBy);
                         string creatorName = creator?.Username ?? "Неизвестный";
                         bool isPlayed = playedPacks.Contains(pack.PackId);
 
-                        packItems.Add(new PackDisplayItem
+                        _packItems.Add(new PackDisplayItem
                         {
                             PackId = pack.PackId,
                             DisplayName = $"{pack.Name} (by {creatorName})",
@@ -61,7 +62,7 @@ namespace MEGAGame.Client
                         });
                     }
 
-                    PackListBox.ItemsSource = packItems;
+                    PackListBox.ItemsSource = _packItems;
                 }
             }
             catch (Exception ex)
@@ -87,20 +88,37 @@ namespace MEGAGame.Client
                     return;
                 }
 
-                if (selectedPackItem.IsPlayed)
+                if (selectedPackItem.IsPlayed && GameSettings.GameMode != GameSettings.GameModeType.Online)
                 {
                     MessageBox.Show("Вы уже играли этот пакет. Выберите другой.", "Ошибка");
                     return;
                 }
 
-                // Устанавливаем выбранный пакет и запускаем игру
                 GameSettings.SelectedPackId = selectedPackItem.PackId;
                 GameSettings.CurrentRound = 1;
                 GameSettings.PlayerScore = 0;
 
-                var gameWindow = new MainWindow();
-                gameWindow.Show();
-                this.Close();
+                if (GameSettings.GameMode == GameSettings.GameModeType.Online)
+                {
+                    var onlineGameWindow = new OnlineGameWindow(_currentPlayer);
+                    onlineGameWindow.Show();
+                }
+                else if (_isBotMode)
+                {
+                    var botDifficultyWindow = new BotDifficultySelectionWindow();
+                    botDifficultyWindow.Show();
+                }
+                else if (_isFriendMode)
+                {
+                    var friendGameWindow = new FriendGameWindow();
+                    friendGameWindow.Show();
+                }
+                else
+                {
+                    var gameWindow = new MainWindow();
+                    gameWindow.Show();
+                }
+                Close();
             }
             catch (Exception ex)
             {
@@ -110,9 +128,9 @@ namespace MEGAGame.Client
 
         private void Back_Click(object sender, RoutedEventArgs e)
         {
-            var mainMenu = new MainMenuWindow(currentPlayer);
+            var mainMenu = new MainMenuWindow(_currentPlayer);
             mainMenu.Show();
-            this.Close();
+            Close();
         }
     }
 }

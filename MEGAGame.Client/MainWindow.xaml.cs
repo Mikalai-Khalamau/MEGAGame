@@ -7,6 +7,7 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
+using MEGAGame.Core;
 using MEGAGame.Core.Data;
 using MEGAGame.Core.Models;
 using MEGAGame.Core.Services;
@@ -23,9 +24,12 @@ namespace MEGAGame.Client
         private int playerBet;
         private bool isQuestionActive;
         private bool isBetPlaced;
-        private bool isMouseOverButton; // Переменная для отслеживания, находится ли курсор на кнопке
+        private bool isMouseOverButton;
 
         private bool isBetInputReadOnly;
+        private int correctStreak = 0; // Added for streak-based achievements
+        private bool answeredCorrectlyThisQuestion = false; // Track if the current question was answered correctly
+
         public event PropertyChangedEventHandler PropertyChanged;
 
         public bool IsBetInputReadOnly
@@ -47,6 +51,7 @@ namespace MEGAGame.Client
             UpdatePlayerInfo();
             isQuestionActive = false;
             isMouseOverButton = false;
+            AchievementService.InitializeAchievements(); // Initialize achievements
         }
 
         private void ResetQuestionsPlayedState()
@@ -156,7 +161,7 @@ namespace MEGAGame.Client
             {
                 1 => "В РАУНДЕ ВИКТОРИНА ВАМ ДАНЫ 1-5 ТЕМ ВОПРОСОВ, В КАЖДОЙ ТЕМЕ ВОПРОСЫ И ОТВЕТЫ СВЯЗАНЫ С НАЗВАНИЕМ ТЕМЫ, С 1-5 ВОПРОСАМИ В ТЕМЕ. В КАЖДОМ ВОПРОСЕ ЕСТЬ 4 ВАРИАНТА ОТВЕТА И ТОЛЬКО ОДИН ВЕРНЫЙ. ОТВЕТ ОБЯЗАТЕЛЬНЫЙ, ЗА НЕПРАВИЛЬНЫЙ ОТВЕТ ОЧКИ НЕ ОТНИМАЮТСЯ.",
                 2 => "В РАУНДЕ СВОЯ ИГРА ВАМ ДАНЫ 1-5 ТЕМ ВОПРОСОВ, В КАЖДОЙ ТЕМЕ ВОПРОСЫ И ОТВЕТЫ СВЯЗАНЫ С НАЗВАНИЕМ ТЕМЫ, С 1-5 ВОПРОСАМИ В ТЕМЕ. ВЫ ДОЛЖНЫ ВВЕСТИ ОТВЕТ В ТЕКСТОВОЕ ПОЛЕ. ЕСЛИ ОТВЕТ ОТЛИЧАЕТСЯ ОТ ПРАВИЛЬНОГО НЕ БОЛЕЕ 2 СИМВОЛАМИ, ТО ОН БУДЕТ ЗАСЧИТАН КАК ВЕРНЫЙ. ЗА НЕПРАВИЛЬНЫЙ ОТВЕТ ВЫ ТЕРЯЕТЕ ОЧКИ. МОЖНО НЕ ОТВЕЧАТЬ НА ВОПРОС И ПРОСТО ОСТАВИТЬ ПУСТОЕ ПОЛЕ ДЛЯ ОТВЕТА И ТОГДА КОЛИЧЕСТВО ВАШИХ ОЧКОВ НЕ ИЗМЕНИТСЯ.",
-                3 => "В РАУНДЕ ЧТО? ГДЕ? КОГДА? ВАМ ДАНЫ 1-5 ТЕМ ВОПРОСОВ, В КАЖДОЙ ТЕМЕ ВОПРОСЫ И ОТВЕТЫ СВЯЗАНЫ С НАЗВАНИЕМ ТЕМЫ, С 1-2 ВОПРОСАМИ В ТЕМЕ. ВЫ ДОЛЖНЫ ВВЕСТИ ОТВЕТ В ТЕКСТОВОЕ ПОЛЕ. ЕСЛИ ОТВЕТ ОТЛИЧАЕТСЯ ОТ ПРАВИЛЬНОГО НЕ БОЛЕЕ 2 СИМВОЛАМИ, ТО ОН БУДЕТ ЗАСЧИТАН КАК ВЕРНЫЙ. ЗА НЕВЕРНЫЙ ОТВЕТ ОЧКИ НЕ ОТНИМАЮТСЯ.",
+                3 => "В РАУНДЕ ЧТО? ГДЕ? КОГДА? ВАМ ДАНЫ 1-5 ТЕМ ВОПРОСОВ, В КАЖДОЙ ТЕМЕ ВОПРОСЫ И ОТВЕТЫ СВЯЗАНЫ С НАЗВАНИЕМ ТЕМЫ, С 1-2 ВОПРОСАМИ В ТЕМЕ. ВЫ ДОЛЖНЫ ВВЕСТИ ОТВЕТ В ТЕКСТОВОЕ ПОЛЕ. ЕСЛИ ОТВЕТ ОТЛИЧАЕТСЯ ОТ ПРАВИЛЬНОГО НЕ БОЛЕЕ 2 СИМВОЛАМИ, ТО ОН БУДЕТ ЗАСЧИТAN КАК ВЕРНЫЙ. ЗА НЕВЕРНЫЙ ОТВЕТ ОЧКИ НЕ ОТНИМАЮТСЯ.",
                 4 => "В РАУНДЕ СТАВКИ ВАМ ДАН ВОПРОС НА ОПРЕДЕЛЕННУЮ ТЕМУ И ВЫ ДЕЛАЕТЕ СТАВКУ ОТ 1 ДО КОЛИЧЕСТВА СВОИХ ОЧКОВ (ЕСЛИ У ВАС НЕПОЛОЖИТЕЛЬНОЕ ЧИСЛО ОЧКОВ, ТО СТАВКА АВТОМАТИЧЕСКИ РАВНА 1). ЕСЛИ ОТВЕТ ВЕРНЫЙ, ТО ВЫ ПОЛУЧАЕТЕ СТОЛЬКО ОЧКОВ, СКОЛЬКО ПОСТАВИЛИ. ЕСЛИ ОТВЕТ НЕВЕРНЫЙ, ТО ВЫ ТЕРЯЕТЕ СТОЛЬКО ОЧКОВ, СКОЛЬКО ПОСТАВИЛИ.",
                 _ => "Информация о раунде недоступна."
             };
@@ -173,7 +178,6 @@ namespace MEGAGame.Client
         private void InfoButton_MouseLeave(object sender, MouseEventArgs e)
         {
             isMouseOverButton = false;
-            // Закрываем Popup только если курсор не находится над самим Popup
             if (!IsMouseOverPopup())
             {
                 InfoPopup.IsOpen = false;
@@ -182,7 +186,6 @@ namespace MEGAGame.Client
 
         private void Popup_MouseLeave(object sender, MouseEventArgs e)
         {
-            // Закрываем Popup, если курсор покинул Popup и не находится над кнопкой
             if (!isMouseOverButton && !IsMouseOverPopup())
             {
                 InfoPopup.IsOpen = false;
@@ -191,7 +194,6 @@ namespace MEGAGame.Client
 
         private bool IsMouseOverPopup()
         {
-            // Проверяем, находится ли курсор над Popup
             return InfoPopup.IsMouseOver;
         }
 
@@ -267,7 +269,7 @@ namespace MEGAGame.Client
 
                             var textBlock = new TextBlock
                             {
-                                Text = GameSettings.CurrentRound == 4 ? $"Тема: {theme.Name}" : $"{theme.Name} ({question.Points} очков)",
+                                Text = GameSettings.CurrentRound == 4 ? $"Тема: {theme.Name ?? "Без названия"}" : $"{theme.Name ?? "Без названия"} ({question.Points} очков)",
                                 TextWrapping = TextWrapping.Wrap,
                                 TextAlignment = TextAlignment.Center
                             };
@@ -384,7 +386,7 @@ namespace MEGAGame.Client
         {
             if (currentQuestion != null)
             {
-                QuestionText.Text = $"{currentQuestion.Text} ({currentQuestion.Points} очков)";
+                QuestionText.Text = $"{currentQuestion.Text ?? "Без текста"} ({currentQuestion.Points} очков)";
                 QuestionText.Visibility = Visibility.Visible;
                 ResultPanel.Visibility = Visibility.Collapsed;
                 GoToResultsButton.Visibility = Visibility.Collapsed;
@@ -395,10 +397,10 @@ namespace MEGAGame.Client
                     TextAnswerPanel.Visibility = Visibility.Collapsed;
                     SubmitOptionsButton.Visibility = Visibility.Visible;
 
-                    Option1.Content = currentQuestion.Option1;
-                    Option2.Content = currentQuestion.Option2;
-                    Option3.Content = currentQuestion.Option3;
-                    Option4.Content = currentQuestion.Option4;
+                    Option1.Content = currentQuestion.Option1 ?? "N/A";
+                    Option2.Content = currentQuestion.Option2 ?? "N/A";
+                    Option3.Content = currentQuestion.Option3 ?? "N/A";
+                    Option4.Content = currentQuestion.Option4 ?? "N/A";
                     Option1.IsChecked = false;
                     Option2.IsChecked = false;
                     Option3.IsChecked = false;
@@ -411,6 +413,7 @@ namespace MEGAGame.Client
                     TextAnswerSubmitButton.Visibility = Visibility.Visible;
                     TextAnswerInput.Text = "";
                 }
+                answeredCorrectlyThisQuestion = false; // Reset for the new question
             }
         }
 
@@ -446,21 +449,25 @@ namespace MEGAGame.Client
                 ResultText.Text = "Правильно!";
                 ResultText.Foreground = Brushes.Green;
                 ScoreChangeText.Text = $"+{currentQuestion.Points} очков";
+                answeredCorrectlyThisQuestion = true;
+                correctStreak++;
+                CheckStreakAchievements();
             }
             else
             {
                 ResultText.Text = "Неправильно!";
                 ResultText.Foreground = Brushes.Red;
                 ScoreChangeText.Text = "0 очков";
+                correctStreak = 0;
             }
 
             string correctAnswer = "";
             switch (currentQuestion.CorrectOption)
             {
-                case 1: correctAnswer = currentQuestion.Option1; break;
-                case 2: correctAnswer = currentQuestion.Option2; break;
-                case 3: correctAnswer = currentQuestion.Option3; break;
-                case 4: correctAnswer = currentQuestion.Option4; break;
+                case 1: correctAnswer = currentQuestion.Option1 ?? "N/A"; break;
+                case 2: correctAnswer = currentQuestion.Option2 ?? "N/A"; break;
+                case 3: correctAnswer = currentQuestion.Option3 ?? "N/A"; break;
+                case 4: correctAnswer = currentQuestion.Option4 ?? "N/A"; break;
             }
             CorrectAnswerText.Text = $"Правильный ответ: {correctAnswer}";
 
@@ -469,20 +476,21 @@ namespace MEGAGame.Client
             UpdatePlayerInfo();
             isQuestionActive = false;
             UpdateQuestionButtons();
+            CheckMasterPackageAchievement();
             CheckRoundCompletion();
         }
 
         private void SubmitTextAnswer_Click(object sender, RoutedEventArgs e)
         {
-            string userAnswer = TextAnswerInput.Text.Trim().ToLower();
-            string correctAnswer = currentQuestion.Answer?.Trim().ToLower();
+            string userAnswer = TextAnswerInput.Text.Trim();
+            bool empty = string.IsNullOrWhiteSpace(userAnswer);
 
-            if (GameSettings.CurrentRound == 2 && string.IsNullOrWhiteSpace(userAnswer))
+            if (GameSettings.CurrentRound == 2 && empty)
             {
                 ResultText.Text = "Ответ пропущен";
                 ResultText.Foreground = Brushes.Orange;
                 ScoreChangeText.Text = "0 очков";
-                CorrectAnswerText.Text = $"Правильный ответ: {currentQuestion.Answer}";
+                CorrectAnswerText.Text = $"Правильный ответ: {currentQuestion.Answer ?? "N/A"}";
                 ResultPanel.Visibility = Visibility.Visible;
 
                 using (var context = new GameDbContext())
@@ -498,11 +506,13 @@ namespace MEGAGame.Client
                 TextAnswerSubmitButton.Visibility = Visibility.Collapsed;
                 isQuestionActive = false;
                 UpdateQuestionButtons();
+                correctStreak = 0;
+                CheckMasterPackageAchievement();
                 CheckRoundCompletion();
                 return;
             }
 
-            if (string.IsNullOrWhiteSpace(userAnswer) && GameSettings.CurrentRound != 2 && GameSettings.CurrentRound != 3)
+            if (empty && GameSettings.CurrentRound != 2)
             {
                 MessageBox.Show("Пожалуйста, введите ответ!");
                 return;
@@ -518,17 +528,37 @@ namespace MEGAGame.Client
                 }
             }
 
-            bool isSimilar = !string.IsNullOrWhiteSpace(userAnswer) && AreAnswersSimilar(userAnswer, correctAnswer);
-            if (isSimilar || userAnswer == correctAnswer)
+            bool correct = false;
+            string[] correctAnswers = new[] { currentQuestion.Answer ?? "N/A", currentQuestion.Answer2 ?? "", currentQuestion.Answer3 ?? "" }
+                .Where(a => !string.IsNullOrWhiteSpace(a) && a != "N/A")
+                .ToArray();
+
+            if (!empty)
+            {
+                foreach (string correctAnswer in correctAnswers)
+                {
+                    int distance = StringUtils.LevenshteinDistance(userAnswer.ToLower(), correctAnswer.ToLower());
+                    if (distance <= 2)
+                    {
+                        correct = true;
+                        break;
+                    }
+                }
+            }
+
+            if (correct)
             {
                 GameSettings.PlayerScore += currentQuestion.Points;
                 ResultText.Text = "Правильно!";
                 ResultText.Foreground = Brushes.Green;
                 ScoreChangeText.Text = $"+{currentQuestion.Points} очков";
+                answeredCorrectlyThisQuestion = true;
+                correctStreak++;
+                CheckStreakAchievements();
             }
             else
             {
-                if ((GameSettings.CurrentRound == 2 || GameSettings.CurrentRound == 4) && !string.IsNullOrWhiteSpace(userAnswer))
+                if (GameSettings.CurrentRound == 2 || GameSettings.CurrentRound == 4)
                 {
                     GameSettings.PlayerScore -= currentQuestion.Points;
                     ResultText.Text = "Неправильно!";
@@ -541,8 +571,9 @@ namespace MEGAGame.Client
                     ResultText.Foreground = Brushes.Red;
                     ScoreChangeText.Text = "0 очков";
                 }
+                correctStreak = 0;
             }
-            CorrectAnswerText.Text = $"Правильный ответ: {currentQuestion.Answer}";
+            CorrectAnswerText.Text = $"Правильный ответ: {currentQuestion.Answer ?? "N/A"}";
             ResultPanel.Visibility = Visibility.Visible;
             TextAnswerSubmitButton.Visibility = Visibility.Collapsed;
 
@@ -554,27 +585,28 @@ namespace MEGAGame.Client
             UpdatePlayerInfo();
             isQuestionActive = false;
             UpdateQuestionButtons();
+            CheckMasterPackageAchievement();
             CheckRoundCompletion();
         }
 
-        private bool AreAnswersSimilar(string userAnswer, string correctAnswer)
+        private void CheckStreakAchievements()
         {
-            if (string.IsNullOrWhiteSpace(correctAnswer) || string.IsNullOrWhiteSpace(userAnswer))
-                return false;
+            if (correctStreak >= 3)
+                AchievementService.AwardAchievement(GameSettings.PlayerId, 2); // "Тройной удар"
+            if (correctStreak >= 5)
+                AchievementService.AwardAchievement(GameSettings.PlayerId, 3); // "Пятерка"
+            if (correctStreak >= 10)
+                AchievementService.AwardAchievement(GameSettings.PlayerId, 4); // "Десятка"
+        }
 
-            int differences = 0;
-            int minLength = Math.Min(userAnswer.Length, correctAnswer.Length);
-
-            for (int i = 0; i < minLength; i++)
-            {
-                if (userAnswer[i] != correctAnswer[i])
-                    differences++;
-                if (differences > 2)
-                    return false;
-            }
-
-            differences += Math.Abs(userAnswer.Length - correctAnswer.Length);
-            return differences <= 2;
+        private void CheckMasterPackageAchievement()
+        {
+            using var ctx = new GameDbContext();
+            bool allCorrect = ctx.Questions
+                .Where(q => q.PackId == GameSettings.SelectedPackId && q.IsPlayed)
+                .All(q => answeredCorrectlyThisQuestion); // Simplified check; assumes sequential answering
+            if (allCorrect)
+                AchievementService.AwardAchievement(GameSettings.PlayerId, 1); // "Мастер пакета"
         }
 
         private void CheckRoundCompletion()
@@ -619,7 +651,12 @@ namespace MEGAGame.Client
                 QuestionGrid.Visibility = Visibility.Collapsed;
                 RightPanel.Visibility = Visibility.Collapsed;
 
-                double ratingChange = GameSettings.PlayerScore / 10.0;
+                double ratingChange = 0;
+                if (GameSettings.GameMode == GameSettings.GameModeType.SinglePlayer)
+                {
+                    ratingChange = GameSettings.PlayerScore / 10.0; // Одиночная игра
+                }
+
                 string ratingChangeText = ratingChange >= 0 ? $"+{ratingChange:F1}" : $"{ratingChange:F1}";
                 FinalScoreText.Text = $"Ваш итоговый счёт: {GameSettings.PlayerScore}";
                 RatingChangeText.Text = $"Изменение рейтинга: {ratingChangeText}";
@@ -632,6 +669,14 @@ namespace MEGAGame.Client
                         player.Score = GameSettings.PlayerScore;
                         player.Rating += ratingChange;
                         context.SaveChanges();
+
+                        // Check rating achievements
+                        if (player.Rating > 2000)
+                            AchievementService.AwardAchievement(GameSettings.PlayerId, 8); // "Рейтинг 2000+"
+                        if (player.Rating > 3000)
+                            AchievementService.AwardAchievement(GameSettings.PlayerId, 9); // "Рейтинг 3000+"
+                        if (player.Rating > 5000)
+                            AchievementService.AwardAchievement(GameSettings.PlayerId, 10); // "Рейтинг 5000+"
                     }
 
                     var playedPack = new PlayedPack
@@ -644,7 +689,7 @@ namespace MEGAGame.Client
 
                     var session = new GameSession
                     {
-                        HostId = GameSettings.PlayerId,
+                        HostId = GameSettings.PlayerId.ToString(),
                         StartTime = DateTime.Now,
                         Status = "completed",
                         LastUpdated = DateTime.Now,
@@ -656,7 +701,7 @@ namespace MEGAGame.Client
                     var sessionPlayer = new SessionPlayer
                     {
                         SessionId = session.SessionId,
-                        PlayerId = GameSettings.PlayerId,
+                        PlayerId = GameSettings.PlayerId.ToString(),
                         Score = GameSettings.PlayerScore,
                         LastUpdated = DateTime.Now
                     };

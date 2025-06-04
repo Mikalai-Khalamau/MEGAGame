@@ -10,6 +10,7 @@
 	<ItemGroup>
 		<PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
 		<PackageReference Include="MahApps.Metro" Version="3.0.0-rc0516" />
+		<PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="8.0.0" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.3">
 		  <PrivateAssets>all</PrivateAssets>
 		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -25,5 +26,6 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\MEGAGame.Core\MEGAGame.Core.csproj" />
+		<ProjectReference Include="..\MEGAGame.Server\MEGAGame.Server.csproj" />
 	</ItemGroup>
 </Project>

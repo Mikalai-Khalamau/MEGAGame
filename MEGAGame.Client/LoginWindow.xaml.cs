@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Windows;
+using System.Windows.Threading;
 using MEGAGame.Core.Models;
 using MEGAGame.Core.Services;
 
@@ -19,11 +20,22 @@ namespace MEGAGame.Client
         private void Login_Click(object sender, RoutedEventArgs e)
         {
             string username = UsernameBox.Text.Trim();
+            string email = EmailBox.Text.Trim();
             string password = PasswordBox.Password.Trim();
 
-            if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
+            if (string.IsNullOrWhiteSpace(username))
             {
-                MessageTextBlock.Text = "Заполните все поля!";
+                MessageTextBlock.Text = "Пожалуйста, введите никнейм!";
+                return;
+            }
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                MessageTextBlock.Text = "Пожалуйста, введите email!";
+                return;
+            }
+            if (string.IsNullOrWhiteSpace(password))
+            {
+                MessageTextBlock.Text = "Пожалуйста, введите пароль!";
                 return;
             }
 
@@ -57,9 +69,19 @@ namespace MEGAGame.Client
             string email = EmailBox.Text.Trim();
             string password = PasswordBox.Password.Trim();
 
-            if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
+            if (string.IsNullOrWhiteSpace(username))
             {
-                MessageTextBlock.Text = "Заполните все поля!";
+                MessageTextBlock.Text = "Пожалуйста, введите никнейм!";
+                return;
+            }
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                MessageTextBlock.Text = "Пожалуйста, введите email!";
+                return;
+            }
+            if (string.IsNullOrWhiteSpace(password))
+            {
+                MessageTextBlock.Text = "Пожалуйста, введите пароль!";
                 return;
             }
 
@@ -105,7 +127,7 @@ namespace MEGAGame.Client
             GameSettings.PlayerUsername = player.Username;
             GameSettings.IsFirstRun = false;
 
-            MessageTextBlock.Text = "Регистрация успешна! Вы можете войти.";
+            //MessageTextBlock.Text = "Регистрация успешна! Вы можете войти.";
             OpenMainMenu(player);
         }
 

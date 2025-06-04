@@ -22,16 +22,42 @@ namespace MEGAGame.Core.Migrations
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
 
-            modelBuilder.Entity("MEGAGame.Core.Models.GameSession", b =>
+            modelBuilder.Entity("MEGAGame.Core.Models.Achievement", b =>
                 {
-                    b.Property<int>("SessionId")
+                    b.Property<int>("AchievementId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("SessionId"));
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("AchievementId"));
 
-                    b.Property<int>("HostId")
-                        .HasColumnType("int");
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.HasKey("AchievementId");
+
+                    b.ToTable("Achievements");
+                });
+
+            modelBuilder.Entity("MEGAGame.Core.Models.GameSession", b =>
+                {
+                    b.Property<string>("SessionId")
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<string>("HostId")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<bool>("IsPublic")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("JoinKey")
+                        .IsRequired()
+                        .HasColumnType("longtext");
 
                     b.Property<DateTime>("LastUpdated")
                         .HasColumnType("datetime(6)");
@@ -43,11 +69,10 @@ namespace MEGAGame.Core.Migrations
                         .HasColumnType("datetime(6)");
 
                     b.Property<string>("Status")
+                        .IsRequired()
                         .HasColumnType("longtext");
 
                     b.HasKey("SessionId");
-
-                    b.HasIndex("HostId");
 
                     b.ToTable("GameSessions");
                 });
@@ -112,6 +137,32 @@ namespace MEGAGame.Core.Migrations
                     b.ToTable("Players");
                 });
 
+            modelBuilder.Entity("MEGAGame.Core.Models.PlayerAchievement", b =>
+                {
+                    b.Property<int>("PlayerAchievementId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("PlayerAchievementId"));
+
+                    b.Property<DateTime>("AchievedDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("AchievementId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PlayerId")
+                        .HasColumnType("int");
+
+                    b.HasKey("PlayerAchievementId");
+
+                    b.HasIndex("AchievementId");
+
+                    b.HasIndex("PlayerId");
+
+                    b.ToTable("PlayerAchievements");
+                });
+
             modelBuilder.Entity("MEGAGame.Core.Models.Question", b =>
                 {
                     b.Property<int>("QuestionId")
@@ -122,6 +173,12 @@ namespace MEGAGame.Core.Migrations
 
                     b.Property<string>("Answer")
                         .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Answer2")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Answer3")
                         .HasColumnType("longtext");
 
                     b.Property<int?>("CorrectOption")
@@ -225,20 +282,23 @@ namespace MEGAGame.Core.Migrations
                     b.Property<DateTime>("LastUpdated")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<int>("PlayerId")
+                    b.Property<string>("PlayerId")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<int?>("PlayerId1")
                         .HasColumnType("int");
 
                     b.Property<int>("Score")
                         .HasColumnType("int");
 
-                    b.Property<int>("SessionId")
-                        .HasColumnType("int");
+                    b.Property<string>("SessionId")
+                        .IsRequired()
+                        .HasColumnType("longtext");
 
                     b.HasKey("SessionPlayerId");
 
-                    b.HasIndex("PlayerId");
-
-                    b.HasIndex("SessionId");
+                    b.HasIndex("PlayerId1");
 
                     b.ToTable("SessionPlayers");
                 });
@@ -277,17 +337,6 @@ namespace MEGAGame.Core.Migrations
                     b.ToTable("Themes");
                 });
 
-            modelBuilder.Entity("MEGAGame.Core.Models.GameSession", b =>
-                {
-                    b.HasOne("MEGAGame.Core.Models.Player", "Host")
-                        .WithMany()
-                        .HasForeignKey("HostId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Host");
-                });
-
             modelBuilder.Entity("MEGAGame.Core.Models.PlayedPack", b =>
                 {
                     b.HasOne("MEGAGame.Core.Models.QuestionPack", "Pack")
@@ -303,6 +352,25 @@ namespace MEGAGame.Core.Migrations
                         .IsRequired();
 
                     b.Navigation("Pack");
+
+                    b.Navigation("Player");
+                });
+
+            modelBuilder.Entity("MEGAGame.Core.Models.PlayerAchievement", b =>
+                {
+                    b.HasOne("MEGAGame.Core.Models.Achievement", "Achievement")
+                        .WithMany()
+                        .HasForeignKey("AchievementId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("MEGAGame.Core.Models.Player", "Player")
+                        .WithMany()
+                        .HasForeignKey("PlayerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Achievement");
 
                     b.Navigation("Player");
                 });
@@ -336,21 +404,9 @@ namespace MEGAGame.Core.Migrations
 
             modelBuilder.Entity("MEGAGame.Core.Models.SessionPlayer", b =>
                 {
-                    b.HasOne("MEGAGame.Core.Models.Player", "Player")
+                    b.HasOne("MEGAGame.Core.Models.Player", null)
                         .WithMany("SessionPlayers")
-                        .HasForeignKey("PlayerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("MEGAGame.Core.Models.GameSession", "Session")
-                        .WithMany("SessionPlayers")
-                        .HasForeignKey("SessionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Player");
-
-                    b.Navigation("Session");
+                        .HasForeignKey("PlayerId1");
                 });
 
             modelBuilder.Entity("MEGAGame.Core.Models.Theme", b =>
@@ -362,11 +418,6 @@ namespace MEGAGame.Core.Migrations
                         .IsRequired();
 
                     b.Navigation("Pack");
-                });
-
-            modelBuilder.Entity("MEGAGame.Core.Models.GameSession", b =>
-                {
-                    b.Navigation("SessionPlayers");
                 });
 
             modelBuilder.Entity("MEGAGame.Core.Models.Player", b =>

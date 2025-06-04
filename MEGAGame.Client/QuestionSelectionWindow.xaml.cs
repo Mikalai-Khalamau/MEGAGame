@@ -7,7 +7,7 @@ using MEGAGame.Core.Data;
 using MEGAGame.Core.Models;
 using MahApps.Metro.Controls;
 using MEGAGame.Core.Services;
-
+using MEGAGame.Core;
 namespace MEGAGame.Client
 {
     public partial class QuestionSelectionWindow : MetroWindow
@@ -20,10 +20,32 @@ namespace MEGAGame.Client
         {
             InitializeComponent();
             selectedPack = pack;
-            themes = availableThemes;
-            ThemeComboBox.ItemsSource = themes;
-            ThemeComboBox.DisplayMemberPath = "Name";
-            ThemeComboBox.SelectedValuePath = "ThemeId";
+
+            // Загружаем темы с обработкой NULL
+            using (var context = new GameDbContext())
+            {
+                themes = context.Themes
+                    .Where(t => t.PackId == selectedPack.PackId)
+                    .Select(t => new Theme
+                    {
+                        ThemeId = t.ThemeId,
+                        Name = t.Name ?? "Без названия", // Обработка NULL для Name
+                        PackId = t.PackId,
+                        Round = t.Round
+                    })
+                    .ToList();
+
+                if (!themes.Any())
+                {
+                    MessageBox.Show("Темы для выбранного пакета не найдены.", "Ошибка");
+                    Close();
+                    return;
+                }
+
+                ThemeComboBox.ItemsSource = themes;
+                ThemeComboBox.DisplayMemberPath = "Name";
+                ThemeComboBox.SelectedValuePath = "ThemeId";
+            }
         }
 
         private void ThemeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -31,7 +53,7 @@ namespace MEGAGame.Client
             selectedTheme = ThemeComboBox.SelectedItem as Theme;
             if (selectedTheme != null)
             {
-                ThemeNameLabel.Text = selectedTheme.Name;
+                ThemeNameLabel.Text = selectedTheme.Name ?? "Без названия";
                 RoundLabel.Text = $"Раунд: {selectedTheme.Round}";
             }
             else
@@ -93,28 +115,14 @@ namespace MEGAGame.Client
                         IsPlayed = false
                     };
 
-                    // Открываем окно редактирования в зависимости от раунда
-                    if (selectedTheme.Round == 1)
-                    {
-                        var editWindow = new QuestionEditWindowRound1(selectedPack, newQuestion);
-                        editWindow.ShowDialog();
+                    // Открываем окно создания вопроса для всех раундов
+                    var creationWindow = new QuestionCreationWindow(selectedPack, selectedTheme);
+                    creationWindow.ShowDialog();
 
-                        // Если вопрос был сохранён, он уже добавлен в базу в QuestionEditWindowRound1
-                        if (newQuestion.Text != "")
-                        {
-                            Close();
-                        }
-                    }
-                    else
+                    // Если вопрос был сохранён, он уже добавлен в базу в QuestionCreationWindow
+                    if (newQuestion.Text != "")
                     {
-                        var editWindow = new QuestionEditWindowRound234(selectedPack, newQuestion);
-                        editWindow.ShowDialog();
-
-                        // Если вопрос был сохранён, он уже добавлен в базу в QuestionEditWindowRound234
-                        if (newQuestion.Text != "")
-                        {
-                            Close();
-                        }
+                        Close();
                     }
                 }
             }

@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MEGAGame.Client", "MEGAGame
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MEGAGame.Core", "MEGAGame.Core\MEGAGame.Core.csproj", "{FED313C4-0346-416A-AA73-B6BD771B08FC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MEGAGame.Server", "MEGAGame.Server\MEGAGame.Server.csproj", "{BE86AA8D-2A82-4782-B333-70101520E628}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{FED313C4-0346-416A-AA73-B6BD771B08FC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FED313C4-0346-416A-AA73-B6BD771B08FC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FED313C4-0346-416A-AA73-B6BD771B08FC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BE86AA8D-2A82-4782-B333-70101520E628}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BE86AA8D-2A82-4782-B333-70101520E628}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BE86AA8D-2A82-4782-B333-70101520E628}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BE86AA8D-2A82-4782-B333-70101520E628}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

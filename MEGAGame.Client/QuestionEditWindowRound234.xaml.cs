@@ -20,6 +20,8 @@ namespace MEGAGame.Client
             // Заполняем поля текущими значениями вопроса
             QuestionTextBox.Text = question.Text;
             AnswerTextBox.Text = question.Answer;
+            Answer2TextBox.Text = question.Answer2;
+            Answer3TextBox.Text = question.Answer3;
             PointsTextBox.Text = question.Points.ToString();
         }
 
@@ -29,11 +31,14 @@ namespace MEGAGame.Client
             {
                 string questionText = QuestionTextBox.Text.Trim();
                 string answer = AnswerTextBox.Text.Trim();
+                string answer2 = Answer2TextBox.Text.Trim();
+                string answer3 = Answer3TextBox.Text.Trim();
                 string pointsStr = PointsTextBox.Text.Trim();
 
-                if (string.IsNullOrWhiteSpace(questionText) || string.IsNullOrWhiteSpace(answer) || string.IsNullOrWhiteSpace(pointsStr))
+                if (string.IsNullOrWhiteSpace(questionText) ||
+                    (string.IsNullOrWhiteSpace(answer) && string.IsNullOrWhiteSpace(answer2) && string.IsNullOrWhiteSpace(answer3)))
                 {
-                    MessageBox.Show("Заполните все поля!", "Ошибка");
+                    MessageBox.Show("Заполните текст вопроса и хотя бы один правильный ответ!", "Ошибка");
                     return;
                 }
 
@@ -45,11 +50,12 @@ namespace MEGAGame.Client
 
                 using (var context = new GameDbContext())
                 {
-                    // Если вопрос новый (QuestionId == 0), добавляем его
                     if (question.QuestionId == 0)
                     {
                         question.Text = questionText;
                         question.Answer = answer;
+                        question.Answer2 = answer2;
+                        question.Answer3 = answer3;
                         question.Points = points;
                         question.LastUpdated = DateTime.Now;
 
@@ -57,7 +63,6 @@ namespace MEGAGame.Client
                     }
                     else
                     {
-                        // Если вопрос уже существует, обновляем его
                         var questionToUpdate = context.Questions.FirstOrDefault(q => q.QuestionId == question.QuestionId);
                         if (questionToUpdate == null)
                         {
@@ -67,6 +72,8 @@ namespace MEGAGame.Client
 
                         questionToUpdate.Text = questionText;
                         questionToUpdate.Answer = answer;
+                        questionToUpdate.Answer2 = answer2;
+                        questionToUpdate.Answer3 = answer3;
                         questionToUpdate.Points = points;
                         questionToUpdate.LastUpdated = DateTime.Now;
                     }

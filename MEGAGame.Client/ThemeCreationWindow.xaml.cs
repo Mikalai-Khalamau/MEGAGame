@@ -4,7 +4,7 @@ using System.Windows.Controls;
 using MEGAGame.Core.Models;
 using MahApps.Metro.Controls;
 using MEGAGame.Core.Services;
-
+using MEGAGame.Core;
 namespace MEGAGame.Client
 {
     public partial class ThemeCreationWindow : MetroWindow

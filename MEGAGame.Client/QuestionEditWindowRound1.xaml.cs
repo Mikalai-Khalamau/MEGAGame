@@ -3,6 +3,7 @@ using System.Windows;
 using MEGAGame.Core.Data;
 using MEGAGame.Core.Models;
 using MahApps.Metro.Controls;
+using Microsoft.EntityFrameworkCore;
 
 namespace MEGAGame.Client
 {
@@ -19,11 +20,11 @@ namespace MEGAGame.Client
 
             // Заполняем поля текущими значениями вопроса
             QuestionTextBox.Text = question.Text;
-            Option1TextBox.Text = question.Option1;
-            Option2TextBox.Text = question.Option2;
-            Option3TextBox.Text = question.Option3;
-            Option4TextBox.Text = question.Option4;
-            CorrectOptionTextBox.Text = question.CorrectOption.ToString();
+            Option1TextBox.Text = question.Option1 ?? "";
+            Option2TextBox.Text = question.Option2 ?? "";
+            Option3TextBox.Text = question.Option3 ?? "";
+            Option4TextBox.Text = question.Option4 ?? "";
+            CorrectOptionTextBox.Text = question.CorrectOption?.ToString() ?? "";
             PointsTextBox.Text = question.Points.ToString();
         }
 
@@ -62,23 +63,53 @@ namespace MEGAGame.Client
 
                 using (var context = new GameDbContext())
                 {
-                    // Если вопрос новый (QuestionId == 0), добавляем его
-                    if (question.QuestionId == 0)
+                    if (question.QuestionId == 0) // Создание нового вопроса
                     {
+                        // Получаем первую доступную тему из текущего пакета для раунда 1
+                        var theme = context.Themes
+                            .AsNoTracking()
+                            .FirstOrDefault(t => t.PackId == selectedPack.PackId && t.Round == 1);
+
+                        if (theme == null)
+                        {
+                            MessageBox.Show("Не найдена тема для раунда 1, связанная с данным пакетом. Нельзя создать вопрос.", "Ошибка");
+                            return;
+                        }
+
+                        var questionsInTheme = context.Questions
+                            .AsNoTracking()
+                            .Where(q => q.ThemeId == theme.ThemeId && q.Round == 1 && q.PackId == selectedPack.PackId)
+                            .ToList();
+
+                        if (questionsInTheme.Count >= 5)
+                        {
+                            MessageBox.Show("Достигнуто максимальное количество вопросов для этого раунда (5).", "Ошибка");
+                            return;
+                        }
+
                         question.Text = questionText;
                         question.Option1 = option1;
                         question.Option2 = option2;
                         question.Option3 = option3;
                         question.Option4 = option4;
                         question.CorrectOption = correctOption;
+                        question.Answer = "N/A";
+                        question.Answer2 = null; // Не используется в раунде 1
+                        question.Answer3 = null; // Не используется в раунде 1
                         question.Points = points;
+                        question.CreatedDate = DateTime.Now;
                         question.LastUpdated = DateTime.Now;
+                        question.Round = 1;
+                        question.ThemeId = theme.ThemeId;
+                        question.PackId = selectedPack.PackId;
+                        question.CreatedBy = selectedPack.CreatedBy; // или текущий пользователь, например, GameSettings.PlayerId
+                        question.IsActive = true;
+                        question.IsPlayed = false;
 
                         context.Questions.Add(question);
                     }
-                    else
+                    else // Редактирование существующего вопроса
                     {
-                        // Если вопрос уже существует, обновляем его
                         var questionToUpdate = context.Questions.FirstOrDefault(q => q.QuestionId == question.QuestionId);
                         if (questionToUpdate == null)
                         {
@@ -92,6 +123,9 @@ namespace MEGAGame.Client
                         questionToUpdate.Option3 = option3;
                         questionToUpdate.Option4 = option4;
                         questionToUpdate.CorrectOption = correctOption;
+                        questionToUpdate.Answer = "N/A";
+                        questionToUpdate.Answer2 = null; // Не используется в раунде 1
+                        questionToUpdate.Answer3 = null; // Не используется в раунде 1
                         questionToUpdate.Points = points;
                         questionToUpdate.LastUpdated = DateTime.Now;
                     }
@@ -103,7 +137,7 @@ namespace MEGAGame.Client
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Ошибка при сохранении вопроса: {ex.Message}", "Ошибка");
+                MessageBox.Show($"Ошибка при сохранении вопроса:\n{ex.Message}\n\n{ex.InnerException?.Message}", "Ошибка");
             }
         }
 
