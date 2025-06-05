@@ -6,6 +6,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         <!-- Ник и рейтинг -->
@@ -62,8 +63,6 @@
                             Background="#42A5F5" Foreground="White" FontSize="16" FontWeight="Bold"/>
                     <Button Content="Игра против бота" Click="PlayWithBot_Click" Width="200" Height="40" Margin="0,10" 
                             Background="#42A5F5" Foreground="White" FontSize="16" FontWeight="Bold"/>
-                    <Button Content="Игра по сети" Click="PlayOnline_Click" Width="200" Height="40" Margin="0,10" 
-                            Background="#42A5F5" Foreground="White" FontSize="16" FontWeight="Bold"/>
                 </StackPanel>
 
                 <!-- Правый столбец: Дополнительные функции -->
@@ -74,10 +73,12 @@
                             Background="#42A5F5" Foreground="White" FontSize="16" FontWeight="Bold"/>
                     <Button Content="Редактор вопросов" Click="QuestionEditor_Click" Width="200" Height="40" Margin="0,10" 
                             Background="#42A5F5" Foreground="White" FontSize="16" FontWeight="Bold"/>
-                    <Button Content="Выход" Click="Exit_Click" Width="200" Height="40" Margin="0,10" 
-                            Background="#EF5350" Foreground="White" FontSize="16" FontWeight="Bold"/>
                 </StackPanel>
             </Grid>
         </StackPanel>
+
+        <!-- Кнопка выхода -->
+        <Button Grid.Row="2" Content="Выход" Click="Exit_Click" Width="200" Height="40" Margin="0,0,0,20" 
+                Background="#EF5350" Foreground="White" FontSize="16" FontWeight="Bold" HorizontalAlignment="Center"/>
     </Grid>
 </Window>

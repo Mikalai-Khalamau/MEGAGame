@@ -1,15 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.12.35707.178 d17.12
+VisualStudioVersion = 17.12.35707.178
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MEGAGame", "MEGAGame\MEGAGame.csproj", "{1711D92E-FBE5-4AE0-BB56-EECDB19C85A2}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MEGAGame.Client", "MEGAGame.Client\MEGAGame.Client.csproj", "{92D0CFF2-B389-4D71-8804-FA6F3F57CB23}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MEGAGame.Core", "MEGAGame.Core\MEGAGame.Core.csproj", "{FED313C4-0346-416A-AA73-B6BD771B08FC}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MEGAGame.Server", "MEGAGame.Server\MEGAGame.Server.csproj", "{BE86AA8D-2A82-4782-B333-70101520E628}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -29,10 +27,6 @@ Global
 		{FED313C4-0346-416A-AA73-B6BD771B08FC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FED313C4-0346-416A-AA73-B6BD771B08FC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FED313C4-0346-416A-AA73-B6BD771B08FC}.Release|Any CPU.Build.0 = Release|Any CPU
-		{BE86AA8D-2A82-4782-B333-70101520E628}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{BE86AA8D-2A82-4782-B333-70101520E628}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{BE86AA8D-2A82-4782-B333-70101520E628}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{BE86AA8D-2A82-4782-B333-70101520E628}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

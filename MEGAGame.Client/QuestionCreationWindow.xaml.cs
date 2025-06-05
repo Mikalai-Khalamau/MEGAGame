@@ -23,12 +23,6 @@ namespace MEGAGame.Client
             round = theme.Round;
             themeName = theme.Name ?? "Без названия";
 
-            RoundComboBox.SelectedValue = round;
-            ThemeComboBox.ItemsSource = new[] { new { ThemeId = theme.ThemeId, Name = theme.Name ?? "Без названия" } };
-            ThemeComboBox.DisplayMemberPath = "Name";
-            ThemeComboBox.SelectedIndex = 0;
-            ThemeComboBox.IsEnabled = false;
-            RoundComboBox.IsEnabled = false;
             PointsBox.Text = "100";
         }
 

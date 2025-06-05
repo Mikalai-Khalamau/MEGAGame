@@ -27,8 +27,8 @@ namespace MEGAGame.Client
         private bool isMouseOverButton;
 
         private bool isBetInputReadOnly;
-        private int correctStreak = 0; // Added for streak-based achievements
-        private bool answeredCorrectlyThisQuestion = false; // Track if the current question was answered correctly
+        private int correctStreak = 0;
+        private bool answeredCorrectlyThisQuestion = false;
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -51,7 +51,7 @@ namespace MEGAGame.Client
             UpdatePlayerInfo();
             isQuestionActive = false;
             isMouseOverButton = false;
-            AchievementService.InitializeAchievements(); // Initialize achievements
+            AchievementService.InitializeAchievements();
         }
 
         private void ResetQuestionsPlayedState()
@@ -413,7 +413,7 @@ namespace MEGAGame.Client
                     TextAnswerSubmitButton.Visibility = Visibility.Visible;
                     TextAnswerInput.Text = "";
                 }
-                answeredCorrectlyThisQuestion = false; // Reset for the new question
+                answeredCorrectlyThisQuestion = false;
             }
         }
 
@@ -592,11 +592,11 @@ namespace MEGAGame.Client
         private void CheckStreakAchievements()
         {
             if (correctStreak >= 3)
-                AchievementService.AwardAchievement(GameSettings.PlayerId, 2); // "Тройной удар"
+                AchievementService.AwardAchievement(GameSettings.PlayerId, 2);
             if (correctStreak >= 5)
-                AchievementService.AwardAchievement(GameSettings.PlayerId, 3); // "Пятерка"
+                AchievementService.AwardAchievement(GameSettings.PlayerId, 3);
             if (correctStreak >= 10)
-                AchievementService.AwardAchievement(GameSettings.PlayerId, 4); // "Десятка"
+                AchievementService.AwardAchievement(GameSettings.PlayerId, 4);
         }
 
         private void CheckMasterPackageAchievement()
@@ -604,9 +604,9 @@ namespace MEGAGame.Client
             using var ctx = new GameDbContext();
             bool allCorrect = ctx.Questions
                 .Where(q => q.PackId == GameSettings.SelectedPackId && q.IsPlayed)
-                .All(q => answeredCorrectlyThisQuestion); // Simplified check; assumes sequential answering
+                .All(q => answeredCorrectlyThisQuestion);
             if (allCorrect)
-                AchievementService.AwardAchievement(GameSettings.PlayerId, 1); // "Мастер пакета"
+                AchievementService.AwardAchievement(GameSettings.PlayerId, 1);
         }
 
         private void CheckRoundCompletion()
@@ -654,7 +654,15 @@ namespace MEGAGame.Client
                 double ratingChange = 0;
                 if (GameSettings.GameMode == GameSettings.GameModeType.SinglePlayer)
                 {
-                    ratingChange = GameSettings.PlayerScore / 10.0; // Одиночная игра
+                    ratingChange = GameSettings.PlayerScore / 10.0;
+                }
+                else if (GameSettings.GameMode == GameSettings.GameModeType.Bot)
+                {
+                    ratingChange = GameSettings.PlayerScore / 20.0;
+                }
+                else if (GameSettings.GameMode == GameSettings.GameModeType.Friend)
+                {
+                    ratingChange = GameSettings.PlayerScore / 15.0;
                 }
 
                 string ratingChangeText = ratingChange >= 0 ? $"+{ratingChange:F1}" : $"{ratingChange:F1}";
@@ -670,13 +678,12 @@ namespace MEGAGame.Client
                         player.Rating += ratingChange;
                         context.SaveChanges();
 
-                        // Check rating achievements
                         if (player.Rating > 2000)
-                            AchievementService.AwardAchievement(GameSettings.PlayerId, 8); // "Рейтинг 2000+"
+                            AchievementService.AwardAchievement(GameSettings.PlayerId, 8);
                         if (player.Rating > 3000)
-                            AchievementService.AwardAchievement(GameSettings.PlayerId, 9); // "Рейтинг 3000+"
+                            AchievementService.AwardAchievement(GameSettings.PlayerId, 9);
                         if (player.Rating > 5000)
-                            AchievementService.AwardAchievement(GameSettings.PlayerId, 10); // "Рейтинг 5000+"
+                            AchievementService.AwardAchievement(GameSettings.PlayerId, 10);
                     }
 
                     var playedPack = new PlayedPack
@@ -686,27 +693,6 @@ namespace MEGAGame.Client
                         PlayedDate = DateTime.Now
                     };
                     context.PlayedPacks.Add(playedPack);
-
-                    var session = new GameSession
-                    {
-                        HostId = GameSettings.PlayerId.ToString(),
-                        StartTime = DateTime.Now,
-                        Status = "completed",
-                        LastUpdated = DateTime.Now,
-                        PackId = GameSettings.SelectedPackId
-                    };
-                    context.GameSessions.Add(session);
-                    context.SaveChanges();
-
-                    var sessionPlayer = new SessionPlayer
-                    {
-                        SessionId = session.SessionId,
-                        PlayerId = GameSettings.PlayerId.ToString(),
-                        Score = GameSettings.PlayerScore,
-                        LastUpdated = DateTime.Now
-                    };
-                    context.SessionPlayers.Add(sessionPlayer);
-                    context.SaveChanges();
 
                     var questions = context.Questions
                         .Where(q => q.PackId == GameSettings.SelectedPackId)

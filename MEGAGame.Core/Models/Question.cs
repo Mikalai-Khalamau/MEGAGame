@@ -1,5 +1,4 @@
-﻿#nullable enable                     // включаем Nullable Reference Types
-
+﻿#nullable enable                
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -23,8 +22,6 @@ namespace MEGAGame.Core.Models
         public int? CorrectOption { get; set; }
 
         [Required] public string Answer { get; set; } = null!;
-
-        // 🔑 могут быть NULL в БД
         public string? Answer2 { get; set; }
         public string? Answer3 { get; set; }
 

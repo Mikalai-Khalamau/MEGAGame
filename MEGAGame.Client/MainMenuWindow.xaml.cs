@@ -121,29 +121,7 @@ namespace MEGAGame.Client
 
         private void PlayOnline_Click(object sender, RoutedEventArgs e)
         {
-            try
-            {
-                using (var context = new GameDbContext())
-                {
-                    var packs = context.QuestionPacks.Where(p => p.IsPublished).ToList();
-                    if (!packs.Any())
-                    {
-                        MessageBox.Show("Нет опубликованных пакетов вопросов! Создайте и опубликуйте пакет в редакторе вопросов.");
-                        return;
-                    }
-
-                    GameSettings.GameMode = GameSettings.GameModeType.Online;
-                    Console.WriteLine($"GameMode set to: {GameSettings.GameMode}");
-
-                    var packSelectionWindow = new SinglePlayerPackSelectionWindow(_currentPlayer, false, false);
-                    packSelectionWindow.Show();
-                    Close();
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Ошибка при открытии выбора пакетов: {ex.Message}", "Ошибка");
-            }
+            MessageBox.Show("Сетевой режим временно недоступен.", "Информация");
         }
 
         private void ShowRating_Click(object sender, RoutedEventArgs e)

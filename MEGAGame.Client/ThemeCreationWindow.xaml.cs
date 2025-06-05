@@ -5,6 +5,7 @@ using MEGAGame.Core.Models;
 using MahApps.Metro.Controls;
 using MEGAGame.Core.Services;
 using MEGAGame.Core;
+
 namespace MEGAGame.Client
 {
     public partial class ThemeCreationWindow : MetroWindow
@@ -14,8 +15,6 @@ namespace MEGAGame.Client
         public ThemeCreationWindow()
         {
             InitializeComponent();
-            this.WindowState = WindowState.Maximized;
-            this.ResizeMode = ResizeMode.NoResize;
         }
 
         private void CreateTheme_Click(object sender, RoutedEventArgs e)

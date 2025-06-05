@@ -10,8 +10,6 @@ namespace MEGAGame.Core.Data
         public DbSet<QuestionPack> QuestionPacks { get; set; }
         public DbSet<Theme> Themes { get; set; }
         public DbSet<Question> Questions { get; set; }
-        public DbSet<GameSession> GameSessions { get; set; }
-        public DbSet<SessionPlayer> SessionPlayers { get; set; }
         public DbSet<PlayedPack> PlayedPacks { get; set; }
         public DbSet<Achievement> Achievements { get; set; }
         public DbSet<PlayerAchievement> PlayerAchievements { get; set; }
@@ -73,17 +71,6 @@ namespace MEGAGame.Core.Data
                 .HasOne(pa => pa.Achievement)
                 .WithMany()
                 .HasForeignKey(pa => pa.AchievementId);
-
-            modelBuilder.Entity<GameSession>()
-                .HasKey(gs => gs.SessionId);
-
-            modelBuilder.Entity<SessionPlayer>()
-                .HasKey(sp => sp.SessionPlayerId); // Используем SessionPlayerId как первичный ключ
-
-            modelBuilder.Entity<SessionPlayer>()
-                .HasOne(sp => sp.Session)
-                .WithMany(s => s.Players)
-                .HasForeignKey(sp => sp.SessionId);
         }
     }
 }

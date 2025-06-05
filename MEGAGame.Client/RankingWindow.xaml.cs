@@ -1,8 +1,10 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Windows;
+using System.Windows.Controls;
 using MEGAGame.Core.Data;
 using MEGAGame.Core.Services;
-using MEGAGame.Core;
+
 namespace MEGAGame.Client
 {
     public partial class RankingWindow : Window
@@ -15,39 +17,60 @@ namespace MEGAGame.Client
 
         private void LoadRanking()
         {
-            using (var context = new GameDbContext())
+            try
             {
-                var players = context.Players
-                    .OrderByDescending(p => p.Rating)
-                    .ToList();
-
-                var rankedPlayers = players.Select((player, index) => new
+                using (var context = new GameDbContext())
                 {
-                    Rank = index + 1,
-                    Name = player.Username,
-                    Rating = player.Rating
-                }).ToList();
+                    var players = context.Players
+                        .OrderByDescending(p => p.Rating)
+                        .ToList();
 
-                RankingList.ItemsSource = rankedPlayers;
+                    if (!players.Any())
+                    {
+                        MessageBox.Show("Рейтинг пуст. Нет зарегистрированных игроков.", "Информация");
+                        return;
+                    }
+
+                    var rankedPlayers = players.Select((player, index) => new
+                    {
+                        Rank = index + 1,
+                        Name = player.Username,
+                        Rating = player.Rating,
+                        IsCurrentPlayer = player.PlayerId == GameSettings.PlayerId
+                    }).ToList();
+
+                    RankingList.ItemsSource = rankedPlayers;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка при загрузке рейтинга: {ex.Message}", "Ошибка");
             }
         }
 
         private void Back_Click(object sender, RoutedEventArgs e)
         {
-            using (var context = new GameDbContext())
+            try
             {
-                var player = context.Players.FirstOrDefault(p => p.PlayerId == GameSettings.PlayerId);
-                if (player != null)
+                using (var context = new GameDbContext())
                 {
-                    new MainMenuWindow(player).Show();
-                    this.Close();
+                    var player = context.Players.FirstOrDefault(p => p.PlayerId == GameSettings.PlayerId);
+                    if (player != null)
+                    {
+                        new MainMenuWindow(player).Show();
+                        this.Close();
+                    }
+                    else
+                    {
+                        MessageBox.Show("Игрок не найден.", "Ошибка");
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка при возврате в меню: {ex.Message}", "Ошибка");
             }
         }
 
-        private void Exit_Click(object sender, RoutedEventArgs e)
-        {
-            Application.Current.Shutdown();
-        }
     }
 }

@@ -26,6 +26,5 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\MEGAGame.Core\MEGAGame.Core.csproj" />
-		<ProjectReference Include="..\MEGAGame.Server\MEGAGame.Server.csproj" />
 	</ItemGroup>
 </Project>

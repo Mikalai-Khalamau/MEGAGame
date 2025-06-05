@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using MEGAGame.Core.Data;
 using MEGAGame.Core.Models;
 using MEGAGame.Core.Services;
@@ -14,6 +15,22 @@ namespace MEGAGame.Client
         public int PackId { get; set; }
         public string DisplayName { get; set; }
         public bool IsPlayed { get; set; }
+        public int QuestionCount { get; set; }
+    }
+
+    [ValueConversion(typeof(bool), typeof(System.Windows.Media.Color))]
+    public class PlayedToColorConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+        {
+            bool isPlayed = (bool)value;
+            return isPlayed ? System.Windows.Media.Colors.Gray : System.Windows.Media.Colors.Green;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     public partial class SinglePlayerPackSelectionWindow : Window
@@ -47,18 +64,25 @@ namespace MEGAGame.Client
                         .Select(pp => pp.PackId)
                         .ToList();
 
+                    var questionCounts = context.Questions
+                        .GroupBy(q => q.PackId)
+                        .Select(g => new { PackId = g.Key, Count = g.Count() })
+                        .ToDictionary(g => g.PackId, g => g.Count);
+
                     _packItems = new List<PackDisplayItem>();
                     foreach (var pack in packs)
                     {
                         var creator = context.Players.FirstOrDefault(p => p.PlayerId == pack.CreatedBy);
                         string creatorName = creator?.Username ?? "Неизвестный";
                         bool isPlayed = playedPacks.Contains(pack.PackId);
+                        int questionCount = questionCounts.ContainsKey(pack.PackId) ? questionCounts[pack.PackId] : 0;
 
                         _packItems.Add(new PackDisplayItem
                         {
                             PackId = pack.PackId,
                             DisplayName = $"{pack.Name} (by {creatorName})",
-                            IsPlayed = isPlayed
+                            IsPlayed = isPlayed,
+                            QuestionCount = questionCount
                         });
                     }
 
@@ -71,7 +95,7 @@ namespace MEGAGame.Client
             }
         }
 
-        private void StartGame_Click(object sender, RoutedEventArgs e)
+        private void StartButton_Click(object sender, RoutedEventArgs e)
         {
             try
             {
@@ -88,7 +112,7 @@ namespace MEGAGame.Client
                     return;
                 }
 
-                if (selectedPackItem.IsPlayed && GameSettings.GameMode != GameSettings.GameModeType.Online)
+                if (selectedPackItem.IsPlayed)
                 {
                     MessageBox.Show("Вы уже играли этот пакет. Выберите другой.", "Ошибка");
                     return;
@@ -98,27 +122,25 @@ namespace MEGAGame.Client
                 GameSettings.CurrentRound = 1;
                 GameSettings.PlayerScore = 0;
 
-                if (GameSettings.GameMode == GameSettings.GameModeType.Online)
+                Window nextWindow = null;
+                if (_isBotMode)
                 {
-                    var onlineGameWindow = new OnlineGameWindow(_currentPlayer);
-                    onlineGameWindow.Show();
-                }
-                else if (_isBotMode)
-                {
-                    var botDifficultyWindow = new BotDifficultySelectionWindow();
-                    botDifficultyWindow.Show();
+                    nextWindow = new BotDifficultySelectionWindow();
                 }
                 else if (_isFriendMode)
                 {
-                    var friendGameWindow = new FriendGameWindow();
-                    friendGameWindow.Show();
+                    nextWindow = new FriendGameWindow();
                 }
                 else
                 {
-                    var gameWindow = new MainWindow();
-                    gameWindow.Show();
+                    nextWindow = new MainWindow();
                 }
-                Close();
+
+                if (nextWindow != null)
+                {
+                    nextWindow.Show();
+                    Close();
+                }
             }
             catch (Exception ex)
             {
@@ -126,11 +148,18 @@ namespace MEGAGame.Client
             }
         }
 
-        private void Back_Click(object sender, RoutedEventArgs e)
+        private void BackButton_Click(object sender, RoutedEventArgs e)
         {
-            var mainMenu = new MainMenuWindow(_currentPlayer);
-            mainMenu.Show();
-            Close();
+            try
+            {
+                var mainMenu = new MainMenuWindow(_currentPlayer);
+                mainMenu.Show();
+                Close();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка при возврате в меню: {ex.Message}", "Ошибка");
+            }
         }
     }
 }
